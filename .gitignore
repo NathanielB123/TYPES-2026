@@ -1,0 +1,22 @@
+# Work in progress Agda stuff
+WIP/
+
+# LaTeX junk
+*.tex
+*.bbl
+*.bbl-SAVE-ERROR
+*.bcf
+*.bcf-SAVE-ERROR
+*.pdf
+*.toc
+*.aux
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.ptb
+*.run.xml
+
+# But NOT the one in the /latex/ folder!!
+/agda.sty
