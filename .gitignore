@@ -17,6 +17,8 @@ WIP/
 *.out
 *.ptb
 *.run.xml
-
 # But NOT the one in the /latex/ folder!!
 /agda.sty
+
+# Agda junk
+_build/
