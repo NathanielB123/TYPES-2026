@@ -82,59 +82,114 @@
 
 \maketitle
 
-\begin{abstract}
-  In \cite{mcbride2004view}, McBride and McKinna proposed a syntax for 
-  pattern matching in type
-  theory named the \with construct,
-  enabling matches on intermediary computations whilst generalising the
-  context (abstracting over the matched term) to support dependent 
-  elimination.
-
-  This feature is implemented in Agda under the name \with-abstractions. 
-  While useful, the feature can also be a footgun. 
-  Proving simple laws about definitions defined by \with-abstraction is 
-  often fiddly and sometimes impossible due to failures in the generalisation
-  step producing ``ill-typed \with-abstraction'' errors.
-
-  We propose an improved \with-abstraction mechanism leveraging ongoing
-  work to implement local rewrite rules in Agda, inspired by the
-  \scase proposal of Altenkirch et al. \cite{altenkirch2011case}. 
-  Essentially, we
-  aim to support local equality reflection for a subset of
-  equations under which we can maintain decidable typechecking.
-\end{abstract}
-
 \begin{code}[hide]
 {-# OPTIONS --allow-unsolved-metas #-}
 \end{code}
 
-\section{Motivation}
+In \cite{mcbride2004view}, McBride and McKinna proposed a syntax for 
+pattern matching in type
+theory named the \with construct,
+enabling matches on intermediary computations whilst generalising the
+context (abstracting over the matched term) to support dependent 
+elimination.
+
+% TODO: I like this as a TLDR, but Jesper is definitely right that an abstract 
+% for an abstract is a bit silly
+This feature is implemented in Agda under the name \with-abstractions. 
+While useful, the feature can also be a footgun. 
+Proving simple laws about definitions defined by \with-abstraction is 
+often fiddly and sometimes impossible due to failures in the generalisation
+step producing ``ill-typed \with-abstraction'' \cite{agda2024with}  errors.
+
+Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
+we propose an improved \with-abstraction mechanism. 
+Leveraging ongoing
+work to implement local rewrite rules in Agda, we
+aim to support local equality reflection for a subset of
+equations under which we can maintain decidable typechecking.
+
+\paragraph{Motivation}
 
 We begin with a small Agda example to show where \with-abstractions fall short,
 starting by defining the datatype of Booleans with negation and exclusive or,
 albeit under some slightly more evocative names.
+Our aim is to implement and prove properties of arithmetic on natural numbers,
+indexed by their parity.
+
+% \noindent
+% \begin{minipage}{0.275\textwidth}
+% \begin{code}
+% data Parity : Set where
+%   even odd : Parity
+% \end{code}
+% \end{minipage}
+% \begin{minipage}{0.25\textwidth}
+% \begin{code}
+% inv : Parity → Parity
+% inv even  = odd
+% inv odd   = even
+% \end{code}
+% \end{minipage}
+% \begin{minipage}{0.3\textwidth}
+% \begin{code}
+% _xor_ : Parity → Parity → Parity
+% even  xor q = q
+% odd   xor q = inv q
+% \end{code}
+% \end{minipage}
 
 \noindent
 \begin{minipage}{0.275\textwidth}
 \begin{code}
 data Parity : Set where
-  even odd : Parity
+  even  : Parity 
+  odd   : Parity
 \end{code}
-\end{minipage}
-\begin{minipage}{0.25\textwidth}
-\begin{code}
-inv : Parity → Parity
-inv even  = odd
-inv odd   = even
+\begin{code}[hide]
+variable
+  p q : Parity
 \end{code}
 \end{minipage}
 \begin{minipage}{0.3\textwidth}
 \begin{code}
-_xor_ : Parity → Parity → Parity
+inv     :  Parity → Parity
+_xor_   :  Parity → Parity 
+        →  Parity
+\end{code}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+\begin{code}
+data Nat : Parity → Set where
+  ze : Nat even
+  su : Nat (inv p) → Nat p
+\end{code}
+\end{minipage}
+
+\begin{code}[hide]
+inv even  = odd
+inv odd   = even
 even  xor q = q
 odd   xor q = inv q
 \end{code}
-\end{minipage}
+
+
+
+% \footnote{We could define natural numbers independently 
+% of parity, and then
+% prove properties about how parity commutes with arithmetic operations 
+% extrinsically.
+% By working intrinsically instead, we hope to reap a golden ratio reduction in
+% lines of code (\cite{wadler2022plfa}, DeBruijn, ``Intrinsic typing is
+% golden'').
+% 
+% We could also dodge some of the issues that we are about to run into by 
+% breaking
+% \su into two constructors, keeping successor of \odd and \even
+% separate. However,
+% this obligates our later definitions to handle an extra case and furthermore
+% relies on the index being finite (so this trick cannot be
+% replicated for types like length-indexed vectors \AgdaVec, finite sets 
+% \Fin, intrinsically-typed terms \Tm etc.).}
 
 \begin{code}[hide]
 open import Agda.Primitive
@@ -162,9 +217,6 @@ J-sym : (P : ∀ x → x ≡ y → Set) (p : x ≡ y) → P y refl → P x p
 J-sym P refl px = px
 -- End utils
 
-variable
-  p q : Parity
-
 inv-inv : inv (inv p) ≡ p
 inv-inv {p = even}  = refl
 inv-inv {p = odd}  = refl
@@ -178,84 +230,90 @@ xor-even {p = even} = refl
 xor-even {p = odd}  = refl
 \end{code}
 
-Our aim is to implement and prove properties of arithmetic on natural numbers,
-indexed by their parity.\footnote{We could define natural numbers independently 
-of parity, and then
-prove properties about how parity commutes with arithmetic operations 
-extrinsically.
-By working intrinsically instead, we hope to reap a golden ratio reduction in
-lines of code (\cite{wadler2022plfa}, DeBruijn, ``Intrinsic typing is
-golden'').
-
-We could also dodge some of the issues that we are about to run into by 
-breaking
-\su into two constructors, keeping successor of \odd and \even
-separate. However,
-this obligates our later definitions to handle an extra case and furthermore
-relies on the index being finite (so this trick cannot be
-replicated for types like length-indexed vectors \AgdaVec, finite sets 
-\Fin, intrinsically-typed terms \Tm etc.).}
-
-\begin{code}
-data Nat : Parity → Set where
-  ze : Nat even
-  su : Nat (inv p) → Nat p
-\end{code}
-
 \begin{code}[hide]
 variable
   n m l : Nat p
 \end{code}
 
-Addition of natural numbers \xor{}s their respective parities. The base case
-is easy: the typechecker automatically unifies \AgdaBound{p} with \even
-and reduces \even \xor \AgdaBound{q} to \AgdaBound{q}.
 
-\noindent
-\begin{minipage}{0.5\textwidth}
-\begin{code}
+% Addition of natural numbers \xor{}s their respective parities. 
+% The base case
+% is easy: the typechecker automatically unifies \AgdaBound{p} with \even
+% and reduces \even \xor \AgdaBound{q} to \AgdaBound{q}.
+% 
+% \noindent
+% \begin{minipage}{0.5\textwidth}
+% \begin{code}
+% _+_ : Nat p → Nat q → Nat (p xor q)
+% \end{code}
+% \end{minipage}
+% \begin{minipage}{0.4\textwidth}
+% \begin{code}
+% ze + m = m
+% \end{code}
+% \end{minipage}
+
+\begin{code}[hide]
 _+_ : Nat p → Nat q → Nat (p xor q)
-\end{code}
-\end{minipage}
-\begin{minipage}{0.4\textwidth}
-\begin{code}
 ze + m = m
 \end{code}
-\end{minipage}
 
-The inductive step requires us to actually do some work. 
+Addition of natural numbers \xor{}s their respective parities, \AgdaBound{p}
+and \AgdaBound{q}. The base case
+is easy, but the inductive step requires us to actually do some work. 
 \inv \AgdaBound{p} \xor \AgdaBound{q} is stuck, so we need to
 prove a lemma about how \inv commutes with \xor
 (concretely, \inv \AgdaBound{p} \xor \AgdaBound{q} \AgdaEq \inv 
 \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}).
 
 
+% This is reasonable enough, but then we face 
+% a more technical challenge in how to actually 
+% apply this lemma. Aiming for convenience, we gravitate towards 
+% Agda's \rewrite construct
+% (which desugars to \with-abstraction plus a match on \refl) 
+% capable of applying one-off 
+% rewrites to the context in the direction of a propositional identity.
+% Unfortunately, after matching on
+% \su \AgdaBound{n}, nothing in the context directly has type 
+% \inv \AgdaBound{p} \xor \AgdaBound{q}. To force the rewrite to actually
+% do something, we additionally \with-abstract 
+% the result of
+% the recursive call (at type 
+% \Nat \AgdaParens{\inv \AgdaBound{p} \xor \AgdaBound{q}}).
+
+% \begin{code}
+% _+_ {p = p} {q = q} (su n) m
+%   with     n+m ← n + m
+%   rewrite  inv-xor {p = p} {q = q}
+%   = su n+m
+% \end{code}
+
 This is reasonable enough, but then we face 
 a more technical challenge in how to actually 
-apply this lemma. Aiming for convenience, we gravitate towards 
-Agda's \rewrite construct
-(which desugars to \with-abstraction plus a match on \refl) 
-capable of applying one-off 
-rewrites to the context in the direction of a propositional identity.
-Unfortunately, after matching on
-\su \AgdaBound{n}, nothing in the context directly has type 
-\inv \AgdaBound{p} \xor \AgdaBound{q}. To force the rewrite to actually
-do something, we additionally \with-abstract 
-the result of
-the recursive call (at type 
-\Nat \AgdaParens{\inv \AgdaBound{p} \xor \AgdaBound{q}}).
+apply this lemma. Aiming for convenience,
+we gravitate towards Agda's indexed pattern matching. We first
+\with-abstract over the recursive call in order to get some variable in the
+context (\AgdaBound{n+m}) with type 
+\Nat \AgdaParens{\inv \AgdaBound{p} \xor \AgdaBound{q}}.
+Then, we use \with-abstraction to rewrite 
+\inv \AgdaBound{p} \xor \AgdaBound{q} in the type of \AgdaBound{n+m} to 
+\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.\footnote{We could
+make this slightly neater by using Agda's \rewrite construct, but this
+ultimately elaborates to the same thing.}
 
 \begin{code}
 _+_ {p = p} {q = q} (su n) m
-  with     n+m ← n + m
-  rewrite  inv-xor {p = p} {q = q}
+  with  n+m ← n + m
+  with  inv p xor q       | inv-xor {p = p} {q = q}
+... |   .(inv (p xor q))  | refl
   = su n+m
 \end{code}
 
-Finally, we aim to prove that zero is a right-identity of addition. Technically,
-this theorem is not even type correct without knowing 
-\AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p} but proving this is easy enough.
-To formulate the lemma, we use a dependent identity type.
+Note that inlining \AgdaBound{n+m} breaks this code. \with-abstractions only
+apply one-off transformations to the context. Agda does not ``remember''
+the equality between \inv \AgdaBound{p} \xor \AgdaBound{q} and
+\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.
 
 \begin{code}[hide]
 +ze-sig : Nat p → Set
@@ -269,20 +327,28 @@ x ≡[ refl ]≡ y = x ≡ y
 infix 4 _≡[_]≡_
 \end{code}
 
-\begin{code}
+Finally, we aim to prove that zero is a right-identity of addition. Technically,
+this theorem is not even type correct without knowing 
+\AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p} but proving this is easy enough.
+To formulate the lemma, we use a dependent identity 
+type: \su \AgdaBound{n} \AgdaAdd \ze 
+\AgdaDepEq{\AgdaCong \Nat \xorEven} \AgdaBound{n}.
+
+\begin{code}[hide]
 +ze : n + ze ≡[ cong Nat xor-even ]≡ n
 \end{code}
 
 Following the definition of addition itself, the base case is easy, but
 the inductive case is significantly harder. To make
 \su \AgdaBound{n} \AgdaAdd \ze reduce, we need to repeat the same
-\with-abstraction and \rewrite.
+\with-abstractions.
 
 \begin{code}
 +ze {n = ze} = refl
 +ze {n = su {p = p} n}
-  with     n′ ← n + ze
-  rewrite  inv-xor {p = p} {q = even}
+  with  n′ ← n + ze
+  with  inv p xor even       | inv-xor {p = p} {q = even}
+... |   .(inv (p xor even))  | refl
   = {!!}
 \end{code}
 
@@ -307,13 +373,12 @@ in \AddZe, we hit an error:
 \>[0]\AgdaError{of the generated with function is well-formed}%
 \end{myagda}
 
-The issue is with how \rewrite only applies a one-off rewrite to the
-context. For 
+The issue is caused by \with-abstractions' one-off nature.
+For 
 \AgdaBound{eq} : \AgdaBound{n′} \AgdaEq \AgdaBound{n} \AgdaAdd \ze 
 to typecheck, both \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze must have
-the same type. This is the case until we \rewrite by 
-\InvXor \AgdaBraces{\AgdaArgument{p} \AgdaDefEq \AgdaBound{p}} 
-\AgdaBraces{\AgdaArgument{q} \AgdaDefEq \even}. 
+the same type. This is the case until we abstract over
+\inv \AgdaBound{p} \xor \even. 
 \AgdaBound{n′}'s type is rewritten, but \AgdaBound{n} \AgdaAdd \ze
 is left alone, and now the context no longer typechecks.
 
@@ -329,38 +394,47 @@ proving properties of functions involving transports risks a
 prolonged battle with
 ``transport-hell'', a problem whose magnitude is corroborated by 
 the large arsenal of folklore 
-techniques for fighting it: manually abstracting over expressions to
+techniques for fighting 
+it\footnote{E.g. manually abstracting over expressions to
 massage equations into a fragment accepted by indexed pattern matching, 
 redefining transport for specific types by induction on the target rather than 
 the identity proof \cite{2024fin}, using ``John Major'' heterogeneous 
 equality \cite{mcbride2000dependently} such that outermost transports can
 be absorbed \cite{saffrich2024intrinsically},
 global rewrite rules \cite{cockx2020type, cockx2021taming, leray2024rewster} 
-etc. 
+etc.}.
 
 Our perspective is that some manual transport reasoning is 
 inherent to the design of ITT, but for many cases (especially when the
 equations are at neutral or first-order types) we can do a much better job than
 current proof assistants. Concretely, the typechecker should fully internalise
 the equations introduced via \with-abstraction, and apply these equations
-automatically. 
+automatically.
 
 With respect to implementation, we propose building on top of (a subset of) 
 local rewrite rules, as proposed in \cite{leray2025encode} (specifically, we
 only need ``ground'' rules, in the sense that variables in 
 equations are always bound in the context or via higher-order matching).
+To elaborate \with-abstractions, the current generalisation procedure
+normalises the context, eagerly replaces occurrences of the matched term
+with the pattern and then checks the context still typechecks. We propose
+simply adding a local rewrite between the matched term and pattern instead.
 
 Such an improved \with-abstraction
 mechanism also resolves, \textit{en passant}, some of the frustrating UX
 problems with
 dependent pattern matching (termed ``green slime'' in 
 \cite{mcbride2012polynomial}). Rather than throwing an error as soon as
-LHS unification fails, we can instead just force the index equations
-to hold with rewriting.
+LHS unification fails, we should instead just force the index equations
+to hold with rewriting\footnote{The details of implementation here are still
+somewhat up-for-debate, depending on how closely we want to follow the
+theoretical presentation vs reuse Agda's existing implementation of indexed
+pattern matching.}.
 
-\section{Theory}
 
-\subsection{Type Theory with Convertibility Assumptions}
+\paragraph{Theory}
+
+% \subsection{Type Theory with Convertibility Assumptions}
 
 We propose a target type theory for a language with \swith by way of
 including a new contextual judgement for convertibility 
@@ -460,37 +534,10 @@ We give the rules for these projections explicitly.
 \phantom{a}
 
 To bind convertibility assumptions, we need to introduce an appropriate
-language construct. We can arrive at one such construct by aiming to replace
-the eliminator for propositional identity types (for simplicity, we elide 
-transports over judgemental equality). 
-
-\[
-\frac{\begin{matrix}
-|Γ ⊢ eq : t₁ = t₂|,\quad |Γ ▷ t₁ ~ t₂ ▷ eq ~ refl ⊢ u : A|
-\end{matrix}}{
-|Γ ⊢ reflect eq in u : A|
-}
-\]
-
-\[
-\frac{\begin{matrix}
-|Γ ▷ t ~ t ▷ eq ~ refl ⊢ u : A|
-\end{matrix}}{
-|Γ ⊢ reflect refl in u ≡ u [ id , t≡t , refl≡refl ] : A|
-}(|reflectβ|)
-\]
-
-We call this principle local equality reflection, noting the similarity with
-the equality reflection rule from extensional type theory (ETT), which enables
-turning |Γ ⊢ eq : t₁ = t₂| into |Γ ⊢ t₁ ≡ t₂ : A| directly.
-
-While the simplicity is nice, unfortunately, 
-typechecking unrestricted local equality reflection
-is undecidable. The issue is that, by large elimination and congruence,
-inconsistent equations collapse the
-judgemental equality, so reduction under inconsistent equations might loop. 
-This means we need to detect when equations are 
-inconsistent, but in type theory with natural numbers, this is 
+language construct. Unfortunately, introducing convertibility assumptions
+via an ordinary term former (``local equality reflection'') is unwieldy.
+By congruence and large elimination, inconsistent equations collapse the
+judgemental equality, but detecting such inconsistencies quickly becomes 
 undecidable.\footnote{For example, take two closed |ℕ → 𝔹| functions, 
 |f, g : ℕ → 𝔹|. To determine whether the equation |f ~ g| is inconsistent
 we need to check if there exists an input natural number on which |f| and |g| 
@@ -499,53 +546,102 @@ return distinct Booleans. If |f| is the function that constantly returns
 steps, returning |false| only if it halts, then this is equivalent to
 deciding the halting problem.}
 
-Interestingly, while typechecking is undecidable, the resulting theory
-from adding local equality reflection appears to still be meaningfully more
-\textit{intensional} than ETT. Specifically, we cannot derive function
-extensionality from \reflect alone.
-On the other hand, deriving UIP is easy. We just set |A :≡ eq = refl|, and
-|u :≡ refl|.
+% We can arrive at one such construct by aiming to replace
+% the eliminator for propositional identity types (for simplicity, we elide 
+% transports over judgemental equality). 
+% 
+% \[
+% \frac{\begin{matrix}
+% |Γ ⊢ eq : t₁ = t₂|,\quad |Γ ▷ t₁ ~ t₂ ▷ eq ~ refl ⊢ u : A|
+% \end{matrix}}{
+% |Γ ⊢ reflect eq in u : A|
+% }
+% \]
+% 
+% \[
+% \frac{\begin{matrix}
+% |Γ ▷ t ~ t ▷ eq ~ refl ⊢ u : A|
+% \end{matrix}}{
+% |Γ ⊢ reflect refl in u ≡ u [ id , t≡t , refl≡refl ] : A|
+% }(|reflectβ|)
+% \]
+% 
+% We call this principle local equality reflection, noting the similarity with
+% the equality reflection rule from extensional type theory (ETT), which enables
+% turning |Γ ⊢ eq : t₁ = t₂| into |Γ ⊢ t₁ ≡ t₂ : A| directly.
+% 
+% While the simplicity is nice, unfortunately, 
+% typechecking unrestricted local equality reflection
+% is undecidable. The issue is that, by large elimination and congruence,
+% inconsistent equations collapse the
+% judgemental equality, so reduction under inconsistent equations might loop. 
+% This means we need to detect when equations are 
+% inconsistent, but in type theory with natural numbers, this is 
+% undecidable.\footnote{For example, take two closed |ℕ → 𝔹| functions, 
+% |f, g : ℕ → 𝔹|. To determine whether the equation |f ~ g| is inconsistent
+% we need to check if there exists an input natural number on which |f| and |g| 
+% return distinct Booleans. If |f| is the function that constantly returns
+% |true| and |g| is a function that runs a particular Turing machine for |n|
+% steps, returning |false| only if it halts, then this is equivalent to
+% deciding the halting problem.}
+% 
+% Interestingly, while typechecking is undecidable, the resulting theory
+% from adding local equality reflection appears to still be meaningfully more
+% \textit{intensional} than ETT. Specifically, we cannot derive function
+% extensionality from \reflect alone.
+% On the other hand, deriving UIP is easy. We just set |A :≡ eq = refl|, and
+% |u :≡ refl|.
 
-\subsection{Taming Local Equality Reflection}
+% \subsection{Taming Local Equality Reflection}
 
-We would like to better control local equality reflection,
-in order to regain decidable typechecking and possibly independence from UIP. 
-Concretely, we want to add side conditions to |reflect_in_| about
-|t₁| and |t₂| in order to only allow a particular subset of equations.
+% We would like to better control local equality reflection,
+% in order to regain decidable typechecking and possibly independence from UIP. 
+% Concretely, we want to add side conditions to |reflect_in_| about
+% |t₁| and |t₂| in order to only allow a particular subset of equations.
 
-Unfortunately, many useful such side conditions, such as terms
-being of neutral form, or different equations not overlapping etc.
-are properties that turn out to be unstable under substitution. As an example,
-consider that a context with |x ~ true| and |y ~ false| is consistent,
-but if we apply the substitution, |x / y|, we are left with inconsistent 
-equations |x ~ true| and |x ~ false|.\footnote{In principle, it might be 
-possible to detect judgementally inconsistent
-sets of equations (and fix other confluence issues) using techniques from
-term rewriting such as ground completion or equality saturation. 
-However, adapting these techniques to the setting of type theory 
-(with |β|-equations and large elimination) while ensuring termination
-appears non-trivial.}
-
-We note, however, that this is not too different from the situation with
-dependent pattern matching: the success of LHS unification is certainly
-not stable under substitution either. We therefore reuse the same trick:
-reflection should be second-class, only available at the top-level.\footnote{%
+We would like to enforce side conditions on the reflected equations. However,
+with equality reflection as a term former, many useful side conditions
+(such as terms being of neutral form, or different equations not overlapping 
+etc.) break stability of typing under substitution.\footnote{Stability of 
+under substitution is necessary for 
+key metatheoretical properties like subject reduction.} Our solution is
+to make reflection second-class, only available at the top-level.\footnote{%
 Another approach here could be to aim to elaborate a surface language with
 local reflection into a core type theory with only eliminators,
 analagous to the work on elaborating dependent pattern 
 matching \cite{goguen2006eliminating, cockx2016eliminating}.}
 
+% As an example,
+% consider that a context with |x ~ true| and |y ~ false| is consistent,
+% but if we apply the substitution, |x / y|, we are left with inconsistent 
+% equations |x ~ true| and |x ~ false|.\footnote{In principle, it might be 
+% possible to detect judgementally inconsistent
+% sets of equations (and fix other confluence issues) using techniques from
+% term rewriting such as ground completion or equality saturation. 
+% However, adapting these techniques to the setting of type theory 
+% (with |β|-equations and large elimination) while ensuring termination
+% appears non-trivial.}
+
+% We note, however, that this is not too different from the situation with
+% dependent pattern matching: the success of LHS unification is certainly
+% not stable under substitution either. We therefore reuse the same trick:
+% reflection should be second-class, only available at the top-level.\footnote{%
+% Another approach here could be to aim to elaborate a surface language with
+% local reflection into a core type theory with only eliminators,
+% analagous to the work on elaborating dependent pattern 
+% matching \cite{goguen2006eliminating, cockx2016eliminating}.}
+
 % The improvement proposed by \swith is 
 % simply that will be able to support a much larger class of equations
 % in pattern matches. 
 
-To make this trick formal, we introduce notions of global
+Formally, we introduce notions of global
 definition signatures and signature weakenings. 
 Terms, types and substitutions are now defined with respect to a
 signature and a local context, written |Ξ ∣ Γ|.
 We reuse contexts
 for definition telescopes and substitutions for argument instantiations
-(note that \reflect is no longer a term former - it is \textit{only} available
+(note that \reflect is not a term former - it is \textit{only} available
 as a top-level construct in signatures).
 
 
@@ -581,7 +677,7 @@ safely expand the body.}
 For example,
 we could require all sides of equations to be neutral and non-overlapping to
 enable a conversion checking strategy where we check conversion modulo
-assumptions only after β-normalising (similar to the common strategy of
+assumptions after β-normalising (similar to the common strategy of
 delaying η-conversion). Alternatively, we might want to consider equations 
 where only one side is neutral, which requires us to eagerly apply rewrites
 mutually with reduction. 

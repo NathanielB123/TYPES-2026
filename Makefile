@@ -6,6 +6,7 @@ latex/paper.tex: paper.lagda
 	agda --latex $<
 	sed -i "s/{code}/{myagda}/g" latex/paper.tex
 	sed -i "s/@/@@/g" latex/paper.tex
+	sed -i "s/\AgdaSymbol{|}/\AgdaSymbol{||}/g" latex/paper.tex
 
 paper.tex: latex/paper.tex lib.fmt
 	lhs2TeX --agda $< > $@
