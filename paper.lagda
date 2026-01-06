@@ -115,20 +115,25 @@
 
 \paragraph{Motivation}
 
-In \cite{mcbride2004view}, McBride and McKinna proposed a syntax for 
-pattern matching in type
-theory named the \with construct,
-enabling matches on intermediary computations whilst generalising the
-context (abstracting over the matched term) to support dependent 
-elimination.
+% In \cite{mcbride2004view}, McBride and McKinna proposed a syntax for 
+% pattern matching in type
+% theory named the \with construct,
+% enabling matches on intermediary computations whilst generalising the
+% context (abstracting over the matched term) to support dependent 
+% elimination.
 
+The \with construct, proposed by McBride and McKinna in \cite{mcbride2004view},
+extends dependent pattern matching with a way to match on intermediary
+computations whilst generalising the
+context to support dependent 
+elimination.
 This feature is implemented in Agda under the name \with-abstractions. 
 While useful, the feature can also be a footgun.
-Proving simple laws about definitions defined by \with-abstraction is 
+Proving simple laws about definitions by \with-abstraction is 
 often fiddly and sometimes impossible due to failures in the generalisation
-step producing \emph{ill-typed \with-abstraction} \cite{agda2024with}  errors.
-To better illustrate the problem, we consider the concrete example of arithmetic
-on natural numbers indexed by parity.
+step producing \emph{ill-typed \with-abstraction} errors \cite{agda2024with}.
+To illustrate the problem, consider the following definition of natural numbers
+indexed by parity.
 
 % We begin with a small Agda example to illustrate where \with-abstractions 
 % fall short,
