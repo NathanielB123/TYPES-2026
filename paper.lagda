@@ -127,7 +127,7 @@ While useful, the feature can also be a footgun.
 Proving simple laws about definitions defined by \with-abstraction is 
 often fiddly and sometimes impossible due to failures in the generalisation
 step producing ``ill-typed \with-abstraction'' \cite{agda2024with}  errors.
-To illustrate the problem, we consider a concrete example of arithmetic
+To better illustrate the problem, we consider the concrete example of arithmetic
 on natural numbers indexed by parity.
 
 % We begin with a small Agda example to illustrate where \with-abstractions 
@@ -286,8 +286,8 @@ respective
 parities, \AgdaBound{p} and \AgdaBound{q}) as well as prove that \ze is a
 right-identity of addition, \AddZe.
 The base case of \AgdaAddDef
-is easy, but the inductive step requires us to actually do some work. 
-\inv \AgdaBound{p} \xor \AgdaBound{q} is stuck, so we need to
+is easy, but the inductive step requires us to do some work. 
+\inv \AgdaBound{p} \xor \AgdaBound{q} is stuck, so we must
 prove a lemma about how \inv commutes with \xor
 (concretely, \inv \AgdaBound{p} \xor \AgdaBound{q} \AgdaEq \inv 
 \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}).
@@ -333,7 +333,7 @@ and identity proof.}
 \noindent
 \begin{minipage}{0.43\textwidth}
 \begin{code}
-_+_ {p = p} {q = q} (su n) m
+_+_ {p} {q} (su n) m
   with  n+m ← n + m
   with  inv p xor q       | inv-xor {p} {q}
 ... |   .(inv (p xor q))  | refl
@@ -356,7 +356,7 @@ infix 4 _≡[_]≡_
 \end{minipage}
 \begin{minipage}{0.4\textwidth}
 \begin{code}
-+ze {n = su {p = p} n}
++ze {n = su {p} n}
   with  n′ ← n + ze ----in eq
   with  inv p xor even       |  inv-xor {p} {even}
 ...  |  .(inv (p xor even))  | refl
@@ -365,34 +365,33 @@ infix 4 _≡[_]≡_
 \end{minipage}
 \vspace{-1.5ex}
 
-Note that inlining \AgdaBound{n+m} breaks this code. \with-abstractions only
+Note that inlining \AgdaBound{n+m} breaks \AgdaAddDef. \with-abstractions only
 apply one-off transformations. Agda does not ``remember''
 the equality between \inv \AgdaBound{p} \xor \AgdaBound{q} and
 \inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.
 
 Proving \AddZe is trickier. Technically, the theorem is not even type correct 
 without knowing 
-\AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p} but proving this is easy enough.
-To state the property, we use a dependent identity 
-type: \su \AgdaBound{n} \AgdaAdd \ze 
+\mbox{\AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p}} but proving this is easy 
+enough. We state the goal with a dependent identity type: \AgdaBound{n} 
+\AgdaAdd \ze 
 \AgdaDepEq{\AgdaCong \Nat \xorEven} \AgdaBound{n}.
-
-In the inductive case, to make
-\su \AgdaBound{n} \AgdaAdd \ze reduce, we first need to repeat the same
-\with-abstractions.
-The goal asks us to prove 
-\su \AgdaBound{n′} \AgdaDepEq{\AgdaCong \Nat \xorEven} 
-\su \AgdaBound{n}. 
+In the inductive case we first need to repeat the same
+\with-abstractions to make
+\su \AgdaBound{n} \AgdaAdd \ze reduce.
+The remaining goal (\AgdaHole{\{!!\}}) asks us to prove 
+\mbox{\su \AgdaBound{n′} \AgdaDepEq{\AgdaCong \Nat \xorEven} 
+\su \AgdaBound{n}}
 % Manipulating dependent identity is its own can of worms, but
 % more pressingly, 
-This is impossible to prove: we have lost the connection 
+but this is impossible: we have lost the connection 
 between \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze. Since 2.6.2, Agda builds
 in the ``inspect idiom'', allowing us to write ``\AgdaIn \AgdaBound{eq}'' after
 a \with-abstraction to bind a propositional equality between the abstracted
 term and the pattern, but if we attempt to bind \AgdaIn \AgdaBound{eq}
-in \AddZe, we hit an error: 
+in \AddZe, we hit the dreaded ``ill-typed \with-abstraction'' error: 
 \AgdaError{inv p xor even != lhs of type Parity} 
-\AgdaError{when checking that the type} ...\\
+\AgdaError{when checking that the type} ...
 \AgdaError{of the generated with function is well-formed}.
 
 % Dream code:
@@ -421,7 +420,7 @@ _+_ {p = p} {q = q} (su n) m
 % \>[0]\AgdaError{of the generated with function is well-formed}%
 % \end{myagda}
 
-The issue is caused by \with-abstractions' one-off nature.
+The problem is \with-abstractions' one-off nature.
 For 
 \AgdaBound{eq} : \AgdaBound{n′} \AgdaEq \AgdaBound{n} \AgdaAdd \ze 
 to typecheck, both \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze must have
@@ -430,62 +429,50 @@ the same type. This is the case until we abstract over
 \AgdaBound{n′}'s type is rewritten, but \AgdaBound{n} \AgdaAdd \ze
 is left alone, and now the context no longer typechecks.
 
-Experienced Agda users might find following along with this code example 
-slightly frustrating.
-Conventional wisdom suggests sidestepping these issues by 
+% Experienced Agda users might find following along with this code example 
+% slightly frustrating.
+Conventional Agda wisdom suggests sidestepping these issues by 
 forgoing automation features like \with-abstraction
 and its derivatives. Instead, we should program with raw transports.
-
 Transports have a bit of a UX problem (needing to manually specify exactly where
 the equation should be used is tedious), but more problematically,
 proving properties of functions involving transports risks a 
 prolonged battle with
-``transport-hell'', a problem whose magnitude is corroborated by 
-the large arsenal of folklore 
-techniques for fighting 
-it\footnote{E.g. manually abstracting over expressions to
-massage equations into a fragment accepted by indexed pattern matching, 
-redefining transport by induction on the target rather than 
-the identity proof \cite{2024fin}, using ``John Major'' heterogeneous 
+``transport-hell''.\footnote{A problem whose magnitude is corroborated by 
+the large arsenal of folklore techniques for fighting it: massaging
+equations into a fragment accepted by indexed pattern matching, 
+redefining transport by induction on the target rather than
+the identity proof \cite{2024fin}, using ``John Major'' heterogeneous
 equality \cite{mcbride2000dependently, saffrich2024intrinsically},
 global rewrite rules \cite{cockx2020type, cockx2021taming, leray2024rewster} 
-etc.}.
+etc.}
 
 Our perspective is that some manual transport reasoning is 
-inherent to the design of ITT, but for many cases (especially when the
-equations are at neutral or first-order types) we can do a much better job than
-current proof assistants.
+inherent to the design of intensional type theory, but that does not prevent us 
+from doing a
+much better job than existing proof assistants.
 Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
-we propose an improved \with-abstraction mechanism. 
-Leveraging ongoing
-work to implement local rewrite rules in Agda, we
-aim to support local equality reflection for a subset of
-equations under which we can maintain decidable typechecking
+we propose an improved \with-abstraction mechanism for Agda. 
 
-% Concretely, the typechecker should fully internalise
-% the equations introduced via \with-abstraction, and apply these equations
-% automatically.
-
-With respect to implementation, we propose building on top of (a subset of) 
-local rewrite rules, as proposed in \cite{leray2025encode} (specifically, we
+Concretely, we plan to build upon (a subset\footnote{We
 only need ``ground'' rules, in the sense that variables in 
-equations are always bound in the context or via higher-order matching).
+equations are always bound in the context or via higher-order matching.} of) 
+local rewrite rules, as proposed in \cite{leray2025encode}.
 To elaborate \with-abstractions, the current generalisation procedure
 normalises the context, eagerly replaces occurrences of the matched term
-with the pattern and then checks the context still typechecks. We propose
-simply adding a local rewrite between the matched term and pattern instead.
+with the pattern and then checks the context still typechecks. We plan
+instead to simply add a local rewrite between the matched term and pattern.
 
-Such an improved \with-abstraction
-mechanism also resolves, \textit{en passant}, some of the frustrating UX
-problems with
-dependent pattern matching (termed ``green slime'' in 
+Careful integration of local rewrite rules with indexed pattern matching
+also improves, \textit{en passant}, some of the frustrating UX
+problems with the latter (termed ``green slime'' in 
 \cite{mcbride2012polynomial}). Rather than throwing an error as soon as
-LHS unification fails, we should instead just force the index equations
-to hold with rewriting
+LHS unification fails, we should instead (where possible) force the index 
+equations to hold with rewriting.
 % \footnote{The details of implementation here are still
 % somewhat up-for-debate, depending on how closely we want to follow the
 % theoretical presentation vs reuse Agda's existing implementation of indexed
-% pattern matching.}.
+% pattern matching.}
 
 
 \paragraph{Theory}
@@ -493,7 +480,7 @@ to hold with rewriting
 % \subsection{Type Theory with Convertibility Assumptions}
 
 We propose a target type theory for a language with \swith by way of
-including a new contextual judgement for convertibility 
+introducing a new contextual judgement for convertibility 
 assumptions, following \cite{altenkirch2011case}. We denote a context |Γ|
 extended by an equation between terms |t₁|, |t₂| with |Γ ▷ t₁ ~ t₂|.
 
@@ -505,24 +492,23 @@ extended by an equation between terms |t₁|, |t₂| with |Γ ▷ t₁ ~ t₂|.
 % }
 % \]
 
-Constructs similar to this have also been explored as an alternative to
-judgemental computation rules \cite{sjoberg2015programming},
-and in the setting of
-dependent Haskell \cite{weirich2017specification, liu2023dependently}.
 % We aim to retain both decidable conversion and the judgemental
 % β and η rules that give judgemental equality its power in existing 
 % theorem provers based on intensional type theory (ITT).
-Type theories featuring second-class propositions in contexts
-which nonetheless manipulate the judgemental equality have also been explored
-in the context of synthetic ∞-category theory \cite{riehl2017synthetic} 
-(namely topes),
+Similar judgemental-equality-extending constructs 
+have also been explored as an alternative to
+judgemental computation rules \cite{sjoberg2015programming},
+in the setting of
+dependent Haskell \cite{weirich2017specification, liu2023dependently} and more
+generally in synthetic ∞-category theory 
+\cite{riehl2017synthetic} (namely topes),
 cubical type theory
 %\footnote{The presentation in 
 %\cite{angiuli2025principles} is especially reminiscent of our substitution
 %calculus.} 
 \cite{cohen2015cubical, angiuli2021syntax} (namely cofibrations),
-to control unfolding \cite{gratzer2025controlling} and more 
-\cite{zhang2023three}.
+to control unfolding \cite{gratzer2025controlling} and record
+patching \cite{zhang2023three}.
 
 % We can think of supporting context extension by |t₁ ~ t₂| as similar to adding
 % an extensional identity type former to the theory, except these convertibility
@@ -594,8 +580,8 @@ to control unfolding \cite{gratzer2025controlling} and more
 % To bind convertibility assumptions, we need to introduce an appropriate
 % language construct.
 
-We bind convertibility assumptions via a form of 
-``local equality reflection'': given a 
+A form of ``local equality reflection'' is responsible for binding 
+convertibility assumptions: given a 
 propositional identity |p : t₁ = t₂| we bind
 both |t₁ ~ t₂| and |p ~ refl| in the body. 
 To retain good metatheoretical properties (subject reduction, decidable
@@ -760,7 +746,7 @@ without endangering stability under substitution.
 
 The theory for Booleans was explored in detail in \cite{burke2025local} by
 extending normalisation by evaluation with an extra step during 
-unquote/reflect: before embedding a β-neutral form into the values, we need
+unquote/reflect: before embedding a β-neutral term into the values, we need
 to first syntactically compare it with the LHSs of the in-scope rewrites.
 This approach is slightly unsatisfying though, because it (temporarily)
 breaks the conversion relation, requiring a definition of syntax that allows
