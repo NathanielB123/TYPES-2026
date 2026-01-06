@@ -392,7 +392,7 @@ The remaining goal (\AgdaHole{\{!!\}}) asks us to prove
 but this is impossible: we have lost the connection 
 between \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze. Since 2.6.2, Agda builds
 in the \emph{inspect idiom}, allowing us to write ``\AgdaIn \AgdaBound{eq}'' 
-after a \with-abstraction to bind a propositional equality between the abstracted
+after a \with-abstraction to bind a propositional identity between the abstracted
 term and the pattern, but if we attempt to bind \AgdaIn \AgdaBound{eq}
 in \AddZe, we hit the dreaded \emph{ill-typed \with-abstraction} error: 
 \AgdaError{inv p xor even != lhs of type Parity} 
@@ -439,8 +439,8 @@ is left alone, and now the context no longer typechecks.
 Conventional Agda wisdom suggests sidestepping these issues by 
 forgoing automation features like \with-abstraction
 and its derivatives. Instead, we should program with raw transports.
-Transports have a bit of a UX problem (needing to manually specify exactly where
-the equation should be used is tedious), but more problematically,
+Transports have a bit of a UX problem (manually specifying exactly where
+the equation should be applied is tedious), but more problematically,
 proving properties of functions involving transports still risks a 
 prolonged battle with
 ``transport-hell''.\footnote{A problem whose magnitude is corroborated by 
@@ -459,14 +459,14 @@ much better job than existing proof assistants.
 Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
 we propose an improved \with-abstraction mechanism for Agda. 
 
-Concretely, we plan to build upon (a subset\footnote{We
+We plan to build upon (a subset\footnote{We
 only need \emph{ground} rules: all variables in 
 equations are bound in the context or via higher-order matching.} of) 
 local rewrite rules, as proposed in \cite{leray2025encode}.
 To elaborate \with-abstractions, the current generalisation procedure
-normalises the context, eagerly replaces occurrences of the matched term
-with the pattern and then checks the context still typechecks. We plan
-instead to simply add a local rewrite between the matched term and pattern.
+normalises the context, replaces occurrences of the matched term
+with the pattern and then checks the context is still well-typed. We plan
+to instead simply add a local rewrite between the matched term and pattern.
 
 Careful integration of local rewrite rules with indexed pattern matching
 also improves, \textit{en passant}, some of the frustrating UX
