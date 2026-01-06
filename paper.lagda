@@ -99,7 +99,7 @@
 % While useful, the feature can also be a footgun. 
 % Proving simple laws about definitions defined by \with-abstraction is 
 % often fiddly and sometimes impossible due to failures in the generalisation
-% step producing ``ill-typed \with-abstraction'' \cite{agda2024with}  errors.
+% step producing \emph{ill-typed \with-abstraction} \cite{agda2024with}  errors.
 % 
 % Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
 % we propose an improved \with-abstraction mechanism. 
@@ -126,7 +126,7 @@ This feature is implemented in Agda under the name \with-abstractions.
 While useful, the feature can also be a footgun.
 Proving simple laws about definitions defined by \with-abstraction is 
 often fiddly and sometimes impossible due to failures in the generalisation
-step producing ``ill-typed \with-abstraction'' \cite{agda2024with}  errors.
+step producing \emph{ill-typed \with-abstraction} \cite{agda2024with}  errors.
 To better illustrate the problem, we consider the concrete example of arithmetic
 on natural numbers indexed by parity.
 
@@ -386,10 +386,10 @@ The remaining goal (\AgdaHole{\{!!\}}) asks us to prove
 % more pressingly, 
 but this is impossible: we have lost the connection 
 between \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze. Since 2.6.2, Agda builds
-in the ``inspect idiom'', allowing us to write ``\AgdaIn \AgdaBound{eq}'' after
-a \with-abstraction to bind a propositional equality between the abstracted
+in the \emph{inspect idiom}, allowing us to write ``\AgdaIn \AgdaBound{eq}'' 
+after a \with-abstraction to bind a propositional equality between the abstracted
 term and the pattern, but if we attempt to bind \AgdaIn \AgdaBound{eq}
-in \AddZe, we hit the dreaded ``ill-typed \with-abstraction'' error: 
+in \AddZe, we hit the dreaded \emph{ill-typed \with-abstraction} error: 
 \AgdaError{inv p xor even != lhs of type Parity} 
 \AgdaError{when checking that the type} ...
 \AgdaError{of the generated with function is well-formed}.
@@ -436,13 +436,13 @@ forgoing automation features like \with-abstraction
 and its derivatives. Instead, we should program with raw transports.
 Transports have a bit of a UX problem (needing to manually specify exactly where
 the equation should be used is tedious), but more problematically,
-proving properties of functions involving transports risks a 
+proving properties of functions involving transports still risks a 
 prolonged battle with
 ``transport-hell''.\footnote{A problem whose magnitude is corroborated by 
 the large arsenal of folklore techniques for fighting it: massaging
 equations into a fragment accepted by indexed pattern matching, 
-redefining transport by induction on the target rather than
-the identity proof \cite{2024fin}, using ``John Major'' heterogeneous
+redefining transport by induction on the target 
+\cite{2024fin}, using ``John Major'' heterogeneous
 equality \cite{mcbride2000dependently, saffrich2024intrinsically},
 global rewrite rules \cite{cockx2020type, cockx2021taming, leray2024rewster} 
 etc.}
@@ -455,8 +455,8 @@ Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
 we propose an improved \with-abstraction mechanism for Agda. 
 
 Concretely, we plan to build upon (a subset\footnote{We
-only need ``ground'' rules, in the sense that variables in 
-equations are always bound in the context or via higher-order matching.} of) 
+only need \emph{ground} rules: all variables in 
+equations are bound in the context or via higher-order matching.} of) 
 local rewrite rules, as proposed in \cite{leray2025encode}.
 To elaborate \with-abstractions, the current generalisation procedure
 normalises the context, eagerly replaces occurrences of the matched term
@@ -474,7 +474,7 @@ equations to hold with rewriting.
 % theoretical presentation vs reuse Agda's existing implementation of indexed
 % pattern matching.}
 
-
+\vspace{-2.0ex}
 \paragraph{Theory}
 
 % \subsection{Type Theory with Convertibility Assumptions}
@@ -580,17 +580,18 @@ patching \cite{zhang2023three}.
 % To bind convertibility assumptions, we need to introduce an appropriate
 % language construct.
 
-A form of ``local equality reflection'' is responsible for binding 
-convertibility assumptions: given a 
+We bind convertibility assumptions with a form of 
+\emph{local equality reflection}: given a 
 propositional identity |p : t₁ = t₂| we bind
 both |t₁ ~ t₂| and |p ~ refl| in the body. 
 To retain good metatheoretical properties (subject reduction, decidable
-typechecking etc.) we make reflection ``second-class'', only available at the 
-top-level.\footnote{%
-Another approach here could be to aim to elaborate a surface language with
-local reflection into a core type theory with only eliminators,
-analagous to the work on elaborating dependent pattern 
-matching \cite{goguen2006eliminating, cockx2016eliminating}.}
+typechecking etc.) we make reflection \emph{second-class}, only available at the 
+top-level.
+% \footnote{%
+% Another approach here could be to aim to elaborate a surface language with
+% local reflection into a core type theory with only eliminators,
+% analagous to the work on elaborating dependent pattern 
+% matching \cite{goguen2006eliminating, cockx2016eliminating}.}
 This is in keeping with Agda's generative pattern matching and
 gives us the freedom to syntactically restrict 
 equations (e.g. disallowing overlap), 
@@ -611,11 +612,9 @@ without endangering stability under substitution.
 % steps, returning |false| only if it halts, then this is equivalent to
 % deciding the halting problem.}
 
-% Unfortunately
-
 % We need a language construct to bind convertibility assumptions. Unfortunately,
 % doing this with a first-class term former 
-% (``local equality reflection'') is unwieldy.
+% (\emph{local equality reflection}) is unwieldy.
 
 % We can arrive at one such construct by aiming to replace
 % the eliminator for propositional identity types (for simplicity, we elide 
