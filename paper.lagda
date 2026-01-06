@@ -123,7 +123,7 @@
 % elimination.
 
 The \with construct, proposed by McBride and McKinna in \cite{mcbride2004view},
-extends dependent pattern matching with a way to match on intermediary
+extends dependent pattern matching with a mechanism to match on intermediary
 computations whilst generalising the
 context to support dependent 
 elimination.
@@ -322,17 +322,20 @@ prove a lemma about how \inv commutes with \xor
 
 This is reasonable enough, but then we face 
 a more technical challenge in how to actually 
-apply this lemma. Aiming for convenience,
+use this lemma. Aiming for convenience,
 we gravitate towards Agda's indexed pattern matching. We first
 \with-abstract over the recursive call in order to get some variable into the
 context (\AgdaBound{n+m}) with type 
 \Nat \AgdaParens{\inv \AgdaBound{p} \xor \AgdaBound{q}}.
-Then, we use another \with-abstraction to rewrite 
-\inv \AgdaBound{p} \xor \AgdaBound{q} in the type of \AgdaBound{n+m} to 
-\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.%
-\footnote{Agda's \rewrite
-construct desugars to the same simultaneous abstraction over the LHS
-and identity proof.}
+Then, we use another \with-abstraction to rewrite its type to 
+the required 
+\Nat \AgdaParens{\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}}.
+% Then, we use another \with-abstraction to rewrite 
+% \inv \AgdaBound{p} \xor \AgdaBound{q} in the type of \AgdaBound{n+m} to 
+% \inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.%
+% \footnote{Agda's \rewrite
+% construct desugars to the same simultaneous abstraction over the LHS
+% and identity proof.}
 
 \vspace{-1.5ex}
 \noindent
@@ -370,7 +373,7 @@ infix 4 _≡[_]≡_
 \end{minipage}
 \vspace{-1.5ex}
 
-Note that inlining \AgdaBound{n+m} breaks \AgdaAddDef. \with-abstractions only
+Note that inlining \AgdaBound{n+m} does not work. \with-abstractions only
 apply one-off transformations. Agda does not ``remember''
 the equality between \inv \AgdaBound{p} \xor \AgdaBound{q} and
 \inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.
@@ -381,7 +384,7 @@ without knowing
 enough. We state the goal with a dependent identity type: \AgdaBound{n} 
 \AgdaAdd \ze 
 \AgdaDepEq{\AgdaCong \Nat \xorEven} \AgdaBound{n}.
-In the inductive case we first need to repeat the same
+In the inductive case, we first need to repeat the same
 \with-abstractions to make
 \su \AgdaBound{n} \AgdaAdd \ze reduce.
 The remaining goal (\AgdaHole{\{!!\}}) asks us to prove 
@@ -439,7 +442,7 @@ is left alone, and now the context no longer typechecks.
 Conventional Agda wisdom suggests sidestepping these issues by 
 forgoing automation features like \with-abstraction
 and its derivatives. Instead, we should program with raw transports.
-Transports have a bit of a UX problem (manually specifying exactly where
+Transports have a UX problem (manually specifying where
 the equation should be applied is tedious), but more problematically,
 proving properties of functions involving transports still risks a 
 prolonged battle with
@@ -451,7 +454,6 @@ redefining transport by induction on the target
 equality \cite{mcbride2000dependently, saffrich2024intrinsically},
 global rewrite rules \cite{cockx2020type, cockx2021taming, leray2024rewster} 
 etc.}
-
 Our perspective is that some manual transport reasoning is 
 inherent to the design of intensional type theory, but that does not prevent us 
 from doing a
