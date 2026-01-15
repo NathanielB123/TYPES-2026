@@ -122,8 +122,9 @@
 % context (abstracting over the matched term) to support dependent 
 % elimination.
 
-The \with construct, proposed by McBride and McKinna in \cite{mcbride2004view},
-extends dependent pattern matching with a mechanism to match on intermediary
+The \with construct, proposed by McBride and McKinna \cite{mcbride2004view},
+extends dependent pattern matching \cite{coquand1992pattern} 
+with a mechanism to match on intermediary
 computations whilst generalising the
 context to support dependent 
 elimination.
@@ -374,15 +375,16 @@ infix 4 _≡[_]≡_
 \vspace{-1.5ex}
 
 Note that inlining \AgdaBound{n+m} does not work. \with-abstractions only
-apply one-off transformations. Agda does not ``remember''
+apply one-off transformations so, \textbf{critically}, Agda does not 
+``remember''
 the equality between \inv \AgdaBound{p} \xor \AgdaBound{q} and
 \inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.
 
 Proving \AddZe is trickier. Technically, the theorem is not even type correct 
 without knowing 
 \mbox{\AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p}} but proving this is easy 
-enough. We state the goal with a dependent identity type: \AgdaBound{n} 
-\AgdaAdd \ze 
+enough. We state the type of \AddZe with a dependent identity: 
+\AgdaBound{n} \AgdaAdd \ze 
 \AgdaDepEq{\AgdaCong \Nat \xorEven} \AgdaBound{n}.
 In the inductive case, we first need to repeat the same
 \with-abstractions to make
@@ -442,8 +444,8 @@ is left alone, and now the context no longer typechecks.
 Conventional Agda wisdom suggests sidestepping these issues by 
 forgoing automation features like \with-abstraction
 and its derivatives. Instead, we should program with raw transports.
-Transports have a UX problem (manually specifying where
-the equation should be applied is tedious), but more problematically,
+However, transports have a UX problem (manually specifying where
+to apply the equation is tedious), and more problematically,
 proving properties of functions involving transports still risks a 
 prolonged battle with
 ``transport-hell''.\footnote{A problem whose magnitude is corroborated by 
@@ -461,18 +463,19 @@ much better job than existing proof assistants.
 Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
 we propose an improved \with-abstraction mechanism for Agda. 
 
-We plan to build upon (a subset\footnote{We
+We build upon (a subset\footnote{We
 only need \emph{ground} rules: all variables in 
 equations are bound in the context or via higher-order matching.} of) 
-local rewrite rules, as proposed in \cite{leray2025encode}.
-To elaborate \with-abstractions, the current generalisation procedure
+local rewrite rules, as proposed by Leray and 
+Winterhalter \cite{leray2025encode}.
+To elaborate \with-abstractions, Agda's existing generalisation procedure
 normalises the context, replaces occurrences of the matched term
 with the pattern and then checks the context is still well-typed. We plan
-to instead simply add a local rewrite between the matched term and pattern.
+instead to simply add a local rewrite between the matched term and pattern.
 
-Careful integration of local rewrite rules with indexed pattern matching
-also improves, \textit{en passant}, some of the frustrating UX
-problems with the latter (termed ``green slime'' in 
+By carefully integrating local rewrite rules with indexed pattern matching
+we also aim to improve some of the frustrating UX
+problems of the latter (termed ``green slime'' in 
 \cite{mcbride2012polynomial}). Rather than throwing an error as soon as
 LHS unification fails, we should instead (where possible) force the index 
 equations to hold with rewriting.
@@ -507,15 +510,14 @@ have also been explored as an alternative to
 judgemental computation rules \cite{sjoberg2015programming},
 in the setting of
 dependent Haskell \cite{weirich2017specification, liu2023dependently} and more
-generally in synthetic ∞-category theory 
-\cite{riehl2017synthetic} (namely topes),
-cubical type theory
+generally (by the name cofibrations) 
+in cubical type theory \cite{cohen2015cubical, angiuli2021syntax} and
+synthetic ∞-category theory \cite{riehl2017synthetic},
+as well as to control unfolding \cite{gratzer2025controlling} and to implement 
+record patching \cite{zhang2023three}.
 %\footnote{The presentation in 
 %\cite{angiuli2025principles} is especially reminiscent of our substitution
 %calculus.} 
-\cite{cohen2015cubical, angiuli2021syntax} (namely cofibrations),
-to control unfolding \cite{gratzer2025controlling} and record
-patching \cite{zhang2023three}.
 
 % We can think of supporting context extension by |t₁ ~ t₂| as similar to adding
 % an extensional identity type former to the theory, except these convertibility
@@ -754,7 +756,7 @@ The theory for Booleans was explored in detail in \cite{burke2025local} by
 extending normalisation by evaluation with an extra step during 
 unquote/reflect: before embedding a β-neutral term into the values, we need
 to first syntactically compare it with the LHSs of the in-scope rewrites.
-This approach is slightly unsatisfying though, because it (temporarily)
+This approach is somewhat unsatisfying though, because it (temporarily)
 breaks the conversion relation, requiring a definition of syntax that allows
 distinguishing convertible terms (i.e. type theory as a setoid rather than 
 a quotient inductive type), and for a fully formal proof, syntactic lemmas
@@ -763,25 +765,24 @@ an alternative approach based on stabilised neutrals
 \cite{sterling2021normalization}.
 
 Additionally, equations at more complicated types than Booleans
-pose some extra difficulties. For example, the natural number equation
-|n ~ su (f n)| must be oriented towards |su (f n)| to unblock β
-reductions, but also loops if we apply it naively.
+pose some further difficulties. For example, the natural number equation
+|n ~ su (f n)| must be oriented towards |su (f n)| to unblock 
+β-reductions, but also loops if we apply it naively.
 
-Finally, we note another interesting side condition on reflected
-equations. If we enforce that both sides, |t₁| and |t₂|, 
-are not convertible 
+Finally, we note another interesting side condition on reflected equations. 
+If we enforce that both sides, |t₁| and |t₂|,
+are not convertible prior to reflection
 (inspired by
-\cite{cockx2016eliminating}), then it does not appear to be possible to
-replicate extensional type theory's standard proof of UIP.
+\cite{cockx2016eliminating}), then replicating the standard 
+proof of UIP from extensional type theory does not appear possible.
 %\footnote{An alternative
 %restriction to try and avoid UIP could be to only bind |t₁ ~ t₂| without
 %the additional |eq ~ refl|. This would, however, severely limit \reflect's 
 %power, making it impossible to prove even the |J| rule.}
-This begs the following question: 
 
-\textbf{Open Question:} Is MLTT extended with global definitions and local
-per-definition equality reflection, conditional on |t₁ ≢ t₂|, 
-consistent with HoTT?
+This begs the following question: \textbf{(Open Question)} Is MLTT extended with 
+global definitions and local per-definition equality reflection, conditional on 
+|t₁ ≢ t₂|, consistent with HoTT?
 
 % \appendix
 % \section{Some Typing Rules}

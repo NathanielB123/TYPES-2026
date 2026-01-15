@@ -85,6 +85,7 @@
 \newunicodechar{ℤ}{$\mathbb{Z}$}
 \newunicodechar{𝟙}{$\mathbb{1}$}
 \newunicodechar{𝟘}{$\mathbb{0}$}
+\newunicodechar{＋}{$+$}
 
 \newunicodechar{⊔}{$\sqcup$}
 \newunicodechar{∧}{$\land$}
