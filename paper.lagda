@@ -125,7 +125,7 @@
 The \with construct, proposed by McBride and McKinna \cite{mcbride2004view},
 extends dependent pattern matching \cite{coquand1992pattern} 
 with a mechanism to match on intermediary
-computations whilst generalising the
+computations, whilst generalising the
 context to support dependent 
 elimination.
 This feature is implemented in Agda under the name \with-abstractions. 
@@ -328,9 +328,10 @@ we gravitate towards Agda's indexed pattern matching. We first
 \with-abstract over the recursive call in order to get some variable into the
 context (\AgdaBound{n+m}) with type 
 \Nat \AgdaParens{\inv \AgdaBound{p} \xor \AgdaBound{q}}.
-Then, we use another \with-abstraction to rewrite its type to 
-the required 
-\Nat \AgdaParens{\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}}.
+Then, we use a simultaneous \with-abstraction to rewrite \AgdaBound{n+m}'s type 
+to the required 
+\Nat \AgdaParens{\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}}
+and apply successor.
 % Then, we use another \with-abstraction to rewrite 
 % \inv \AgdaBound{p} \xor \AgdaBound{q} in the type of \AgdaBound{n+m} to 
 % \inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.%
@@ -457,8 +458,8 @@ equality \cite{mcbride2000dependently, saffrich2024intrinsically},
 global rewrite rules \cite{cockx2020type, cockx2021taming, leray2024rewster} 
 etc.}
 Our perspective is that some manual transport reasoning is 
-inherent to the design of intensional type theory, but that does not prevent us 
-from doing a
+inherent to the design of intensional type theory, but that does not rule out
+the possibility of doing a
 much better job than existing proof assistants.
 Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
 we propose an improved \with-abstraction mechanism for Agda. 
@@ -506,7 +507,7 @@ extended by an equation between terms |t₁|, |t₂| with |Γ ▷ t₁ ~ t₂|.
 % β and η rules that give judgemental equality its power in existing 
 % theorem provers based on intensional type theory (ITT).
 Similar judgemental-equality-extending constructs 
-have also been explored as an alternative to
+have been explored as an alternative to
 judgemental computation rules \cite{sjoberg2015programming},
 in the setting of
 dependent Haskell \cite{weirich2017specification, liu2023dependently} and more

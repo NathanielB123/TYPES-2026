@@ -21,18 +21,18 @@ agda.sty: latex/agda.sty
 	latexmk -pdf $<
 
 clean:
-	rm paper.tex || true
-	rm *.aux || true
-	rm *.fdb_latexmk || true
-	rm *.fls || true
-	rm *.log || true
-	rm *.out || true
-	rm *.ptb || true
-	rm paper.pdf || true
-	rm *.zip || true
-	rm *.bbl || true
-	rm *.blg || true
-	rm *.pag || true
-	rm *.vtc || true
-	rm latex/paper.tex || true
-	rm agda.sty
+	rm -f paper.tex
+	rm -f *.aux
+	rm -f *.fdb_latexmk
+	rm -f *.fls
+	rm -f *.log
+	rm -f *.out
+	rm -f *.ptb
+	rm -f paper.pdf
+	rm -f *.zip
+	rm -f *.bbl
+	rm -f *.blg
+	rm -f *.pag
+	rm -f *.vtc
+	rm -f latex/paper.tex
+	rm -f agda.sty

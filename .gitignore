@@ -1,8 +1,9 @@
 # Work in progress Agda stuff
 WIP/
+Random/
 
 # LaTeX junk
-*.tex
+paper.tex
 *.bbl
 *.bbl-SAVE-ERROR
 *.bcf
