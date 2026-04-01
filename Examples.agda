@@ -7,15 +7,18 @@ module Examples where
 
 module Utils where
   variable
-    A B   : Set _
-    x y   : A
-    f g   : A → B
+    A B C : Set _
+    x y z : A
+    f g h : A → B
     xs ys : List _
 
   infix 4 _≡[_]≡_
 
   sym : x ≡ y → y ≡ x
   sym refl = refl
+
+  _∙_ : x ≡ y → y ≡ z → x ≡ z
+  refl ∙ q = q
 
   ap : (f : A → B) → x ≡ y → f x ≡ f y
   ap f refl = refl
@@ -132,3 +135,10 @@ _+_ {p} {q} (su n) m
   rewrite xor-even {inv p}
   = ap su (+ze {n = n})
 -}
+
+-- Note the final |rewrite| would probably would be rejected by |--smart-with|, 
+-- |--without-K|.
+-- We should instead reflect the below higher equation.
+xor-even-inv : xor-even {inv p} ≡ inv-xor {p} {even} ∙ ap inv (xor-even {p})
+xor-even-inv {p = odd}  = refl
+xor-even-inv {p = even} = refl
