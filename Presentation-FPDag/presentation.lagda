@@ -186,7 +186,7 @@ variable
 \title{Smart \with}
 \author{Nathaniel Burke}
 \institute{TU Delft}
-\date{FP Dag 2026}
+\date{28/01/2026}
 
 \begin{document}
 
@@ -231,11 +231,11 @@ variable
 \\
 \>[0][@{}l@{\AgdaIndent{0}}]%
 \>[2]\AgdaInductiveConstructor{lam}\AgdaSpace\AgdaBound{x}%
-\AgdaSpace\AgdaBound{t}\AgdaSpace%
+\AgdaSpace\AgdaBound{t'}\AgdaSpace%
 \AgdaSymbol{→}\AgdaSpace\AgdaFunction{norm}\AgdaSpace%
 \AgdaSymbol{(}\AgdaFunction{substitute}\AgdaSpace%
 \AgdaBound{x}\AgdaSpace\AgdaBound{u}\AgdaSpace%
-\AgdaBound{t}\AgdaSymbol{)}%
+\AgdaBound{t'}\AgdaSymbol{)}%
 \\
   \end{myagda}
 % Example of a case expression - not on variable?
@@ -270,8 +270,8 @@ A × B = Σ A λ _ → B
     \begin{code}
 unzip : List (A × B) → List A × List B
 unzip []        = [] , []
-unzip ((x , y) ,- xys) with unzip xys
-unzip ((x , y) ,- xys) | xs , ys
+unzip ((x , y) ,- xys) with  unzip xys
+unzip ((x , y) ,- xys) |     xs , ys
   = (x ,- xs) , (y ,- ys)
   \end{code}
 \end{itemize}
@@ -290,9 +290,9 @@ data _＋_ (A B : Set) : Set where
   \end{code}
   \begin{code}
 decide : (f : A → Bool) (x : A) → (f x ≡ tt) ＋ (f x ≡ ff)
-decide f x with f x
-decide f x | tt = inl refl
-decide f x | ff = inr refl
+decide f x with  f x
+decide f x |     tt = inl refl
+decide f x |     ff = inr refl
   \end{code}
 \item<2-5> \vspace{-1.5ex} Multi-step process:
   \begin{itemize}
@@ -724,9 +724,42 @@ postulate
 \item<1-3> HoTT would massively benefit from a better way to deal with 
   transports.
 \item<2-3> If we enforce non-convertibility of the LHS and RHS during 
-  \emph{smart \with}, this appears to prevent the proof of UIP from ETT from 
+  reflection, this appears to prevent the proof of UIP from ETT from 
   going through.\footnocite{cockx2016eliminating}
+  \[\frac{\begin{matrix}
+  |⊢ Ξ sig|,\quad |Ξ ∣ Γ ⊢ eq : t₁ = t₂|,\quad {\color{Emerald}|Ξ ∣ Γ ⊢ t₁ ≢ t₂|},\\ 
+  |Ξ ∣ Γ ▷ t₁ ~ t₂ ▷ eq ~ refl ⊢ u : A|
+  \end{matrix}}
+  {|⊢ Ξ ▷ (Γ ⊢ reflect eq in u : A) sig|}\]
 \item<3> Is restricted \emph{smart \with} consistent with HoTT?
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Some more questions}
+\begin{itemize}
+  \item<1-8> Is \emph{unrestricted} local equality reflection consistent with HoTT
+  as long as we don't bind \emph{|eq ~ refl|}?
+  \begin{itemize}
+    \item<2-8> Note this is quite a weak principle: to prove equations about 
+    definitions by local equality reflection we must resort to |J|.
+  \end{itemize}
+  \item<3-8> Can we translate type theory with local equality reflection to
+    type theory without function extensionality?
+    \begin{itemize}
+    \item<4-8> I strongly suspect function extensionality is independent of local
+    equality reflection, but it would be nice to go through the details of 
+    adapting the standard ETT to ITT translation.
+    \end{itemize}
+\item<5-8> How to decide conditional convertibility on quotiented syntax?
+  \begin{itemize}
+  \item<6-8> Stabilised neutrals?
+  \end{itemize}
+\item<7-8> Is ground completion in the setting of type theory decidable?
+  \begin{itemize}
+  \item<8> Even the Boolean case seems difficult because of large 
+    elimination/equality collapse.
+  \end{itemize}
 \end{itemize}
 \end{frame}
 

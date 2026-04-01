@@ -69,6 +69,7 @@
 \newunicodechar{∎}{$\blacksquare$}
 \newunicodechar{≟}{$\stackrel{?}{=}$}
 \newunicodechar{∷}{$::$}
+\newunicodechar{∫}{$\int$}
 
 \newunicodechar{⨾}{$;$}
 \newunicodechar{⟦}{$\llbracket$}
