@@ -115,8 +115,8 @@ step producing \emph{ill-typed \with-abstraction} errors \cite{agda2024with}.
 To illustrate the problem, and our solution, 
 consider the following attempt to prove
 that filtering a list twice with the same predicate returns the same result
-as filtering once\footnote{The examples in this abstract are also
-available self-contained \cite{nathaniel2026examples}.}.
+as filtering once.\footnote{The examples in this abstract are also
+available self-contained \cite{nathaniel2026examples}.}
 
 \begin{code}[hide]
 open import Agda.Primitive
@@ -225,7 +225,7 @@ the goal to reduce to \nil.
 The inductive case is harder. Because \filter is defined by \with-abstraction,
 \filterTwice must repeat the match on \AgdaBound{f} \AgdaBound{x} to make
 progress. In the false case, the goal reduces to exactly the induction 
-hypothesis, but in the true case (left as a hole, \AgdaHole{\{!!\}}),
+hypothesis; but in the true case (left as a hole, \AgdaHole{\{!!\}}),
 Agda displays the goal type as
 \mbox{\filter \AgdaBound{f} \AgdaParens{\AgdaBound{x} \cons 
 \filter \AgdaBound{f} \AgdaBound{xs}} 
@@ -273,13 +273,10 @@ filter-twice {f = f} {xs = x ,- xs} with f x in eq
 
 Even so, the workaround is tedious, and sometimes does not work at all.
 
-% TODO: Do we want to introduce local rewrite rules at this point?
-% Delaying the "real" examples is sad, but I think it might be a good idea
-% for readability...
 Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
 we propose an improved \with-abstraction mechanism for Agda. On our
-work-in-progress branch \cite{nathaniel2026matches}, we can directly fill the 
-original hole with
+work-in-progress branch \cite{nathaniel2026matches}, Agda accepts
+directly filling the above hole with
 \AgdaFunction{ap}\AgdaSpace{}%
 \AgdaSymbol{(}\AgdaBound{x}\AgdaSpace{}%
 \AgdaOperator{\AgdaInductiveConstructor{,-\AgdaUnderscore{}}}\AgdaSymbol{)}\AgdaSpace{}%
@@ -308,8 +305,8 @@ having to normalise the entire context, we are also hopeful that
 \swith can be
 made more performant than Agda's existing \with construct.
 
-%TODO: I want to include this, but I think it makes more sense to have this
-% later now...
+% TODO: I could include this, but I am not sure it is so important to mention...
+% (and probably makes more sense later regardless)
 %
 % By carefully integrating local rewrite rules with indexed pattern matching
 % we also aim to improve some of the frustrating UX
@@ -324,6 +321,7 @@ made more performant than Agda's existing \with construct.
 the following definition of natural numbers
 indexed by parity:
 
+\vspace{-1ex}
 \noindent
 \begin{minipage}{0.275\textwidth}
 \begin{code}
@@ -350,7 +348,7 @@ data Nat : Parity → Set where
   su : Nat (inv p) → Nat p
 \end{code}
 \end{minipage}
-\vspace{-1.5ex}
+\vspace{-1ex}
 
 \begin{code}[hide]
 inv even  = odd
@@ -382,10 +380,10 @@ variable
 
 We will try to implement addition of \Nat{}s, \AgdaAddDef (which \xor{}s the 
 respective
-parities, \AgdaBound{p} and \AgdaBound{q}) as well as prove that \ze is a
+parities) and prove that \ze is a
 right-identity of addition, \AddZe.
-The base case of \AgdaAddDef
-is easy, but the inductive step requires us to do some work. 
+The base case of \AgdaAddDef is easy, but the inductive step requires us to 
+do some work. 
 \inv \AgdaBound{p} \xor \AgdaBound{q} is stuck, so we must
 prove a lemma about how \inv commutes with \xor
 (concretely, \invXor \AgdaColon \inv \AgdaBound{p} \xor \AgdaBound{q} 
@@ -404,7 +402,7 @@ Then, we \rewrite its type to the required
 \Nat \AgdaParens{\inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}}
 and apply successor.
 
-\vspace{-1.5ex}
+\vspace{-1ex}
 \noindent
 \begin{minipage}{0.45\textwidth}
 \begin{code}
@@ -436,11 +434,11 @@ infix 4 _≡[_]≡_
 +ze {n = ze} = refl
 \end{code}
 \end{minipage}
-\vspace{-1.5ex}
+\vspace{-1ex}
 
 Note that inlining \AgdaBound{n+m} does not work.
 \rewrite{} desugars to simultaneous
-\with-abstraction over the left-hand-side and identity proof, and therefore 
+\with-abstractions (over the left-hand-side and identity proof) and therefore 
 inherits the same limitations: Agda does not 
 ``remember''
 the equality between \inv \AgdaBound{p} \xor \AgdaBound{q} and
@@ -474,6 +472,8 @@ the same type. This is the case until we apply the \rewrite.
 \AgdaBound{n′}'s type is rewritten, but \AgdaBound{n} \AgdaAdd \ze
 is left alone, and now the context no longer typechecks.
 
+% TODO: I am a bit sad about cutting this paragraph...
+%
 % Conventional Agda wisdom suggests sidestepping these issues by 
 % forgoing automation features like \with-abstraction
 % and its derivatives. Instead, we should program with raw transports.
@@ -504,7 +504,6 @@ presheaves respectively.
 Actually, to account for type dependency, we
 interpret contexts as groupoids/presheaves and types as (fibrant) displayed 
 groupoids/displayed presheaves.
-% I don't think this footnote adds much
 % \footnote{Fibrant displayed groupoids over 
 % |⟦Γ⟧| are equivalent to functors from |⟦Γ⟧| to |Grpd| and displayed
 % presheaves over |⟦Γ⟧| are equivalent to presheaves on the category of
@@ -517,14 +516,14 @@ groupoids/displayed presheaves.
 When trying to mechanise these constructions in a proof assistant,
 this dependency causes a ``transport-hell'' problem: the groupoid/functor laws
 only hold propositionally, and so we must insert transports in the 
-interpretation of types\footnote{``Transport-hell'' can also arise from 
+interpretation of types.\footnote{``Transport-hell'' can also arise from 
 type theory's own substitution calculus, but \emph{strictification} via global
 rewrite rules or Kaposi and Pujet's construction \cite{kaposi2025type}
-can mostly resolve this.}. When defining
+can mostly resolve this.} When defining
 the interpretation of terms, these transports need to manually shifted around,
 adding significant clutter to the proofs \cite{burke2026tt}.
 With \swith/\srewrite, we could instead reflect these equations in each case
-and allow the transports to reduce away, 
+and have the transports reduce away, 
 getting us much closer to the clarity of
 informal presentations.
 % bridging the gap between mechanised
@@ -559,7 +558,7 @@ top-level.
 This is in keeping with Agda's generative pattern matching and
 gives us the freedom to syntactically restrict 
 equations (e.g. disallowing overlap), 
-without endangering stability under substitution.
+without endangering subject reduction.
 
 The theory for Boolean equations was explored in earlier work
 \cite{burke2025local}.
@@ -570,12 +569,12 @@ convertibility assumptions in the
 telescope of every top-level definition. This step is inherently
 very
 syntactic (\swith validity is not stable under conversion).
-Once we have the TRS, we can extend normalisation by
+Given a TRS, we can extend normalisation by
 evaluation (NbE) by rewriting β-neutral terms during unquote/reflect
 (conditional on neutral/normal form comparisons). 
 Staying \emph{algebraic} (working with type theory as a
 quotient inductive-inductive type) in the NbE component 
-appears feasible, but requires care to avoid circularity. E.g. 
+appears feasible, but requires care to avoid circularity; 
 we cannot depend on injectivity of type formers during normalisation. 
 
 We are also investigating whether stabilised
@@ -595,13 +594,13 @@ function extensionality
 (we only allow reflecting individual equations, not families of equations) or 
 UIP (for consistency with HoTT).
 
-Unfortunately, naive \swith certainly does
+Naive \swith certainly does
 imply UIP. The situation somewhat resembles that of dependent pattern matching
 \cite{coquand1992pattern, goguen2006eliminating, barras2008new},
 where it is possible to avoid UIP by restricting 
 the unification algorithm \cite{cockx2016eliminating}, so we are hopeful
-a similar criterion on reflected equations could be employed (e.g. disallowing
-reflexive equations).
+a similar criterion on reflected equations could be employed in our setting
+(perhaps disallowing reflexive equations).
 
 \begingroup
 \sloppy
