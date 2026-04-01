@@ -61,6 +61,7 @@
 \newcommand{\false}{\AgdaInductiveConstructor{ff}\xspace}
 
 \newcommand{\AgdaBar}{\AgdaOperator{\AgdaKeyword{||}}\xspace}
+\newcommand{\AgdaColon}{\AgdaOperator{\AgdaKeyword{:}}\xspace}
 \newcommand{\AgdaCloseBrace}{\AgdaSymbol{\}}}
 \newcommand{\AgdaBraces}[1]{\AgdaSymbol{\{}#1\AgdaCloseBrace}
 \xspaceaddexceptions{\AgdaCloseBrace}
@@ -75,6 +76,7 @@
 \newcommand{\AgdaAddDef}{\AgdaOperator{\AgdaFunction{\AgdaUnderscore{}+\AgdaUnderscore{}}}}
 \newcommand{\AgdaAp}{\AgdaFunction{ap}\xspace}
 \newcommand{\xorEven}{\AgdaFunction{xor-even}\xspace}
+\newcommand{\invXor}{\AgdaFunction{inv-xor}\xspace}
 
 \title{Smart \with}
 
@@ -113,7 +115,8 @@ step producing \emph{ill-typed \with-abstraction} errors \cite{agda2024with}.
 To illustrate the problem, and our solution, 
 consider the following attempt to prove
 that filtering a list twice with the same predicate returns the same result
-as filtering once.
+as filtering once\footnote{The examples in this abstract are also
+available self-contained \cite{nathaniel2026examples}.}.
 
 \begin{code}[hide]
 open import Agda.Primitive
@@ -228,14 +231,14 @@ Agda displays the goal type as
 \filter \AgdaBound{f} \AgdaBound{xs}} 
 \AgdaBar \AgdaBound{f} \AgdaBound{x} 
 \AgdaEq \AgdaBound{x} \cons \filter \AgdaBound{f} \AgdaBound{xs}}.
-The ``\AgdaBar \AgdaBound{f} \AgdaBound{x}'' syntax on the LHS denotes that the
+The ``\AgdaBar \AgdaBound{f} \AgdaBound{x}'' syntax on the left-hand side 
+denotes that the
 outer \filter application is still stuck on \AgdaBound{f} \AgdaBound{x},
-rather than reducing to \AgdaBound{x} \cons \filter \AgdaBound{f} 
-\AgdaParens{\filter \AgdaBound{f} \AgdaBound{xs}}
+rather than reducing to \mbox{\AgdaBound{x} \cons \filter \AgdaBound{f} 
+\AgdaParens{\filter \AgdaBound{f} \AgdaBound{xs}}}
 as we might hope.
 
-The problem is due a limitation in how \with-abstractions support
-% TODO: This repeats some explanation later...
+The problem is due a fundamental limitation in how \with-abstractions support
 dependent elimination. Generalisation (during which the matched term is
 abstracted
 over)
@@ -250,9 +253,10 @@ it is \true!
 Since version 2.6.2, Agda builds
 in the \emph{inspect idiom}, allowing us to write ``\AgdaIn \AgdaBound{eq}'' 
 after a \with-abstraction to bind a propositional identity between the 
-abstracted term and the pattern. In this example, this feature enables us to
+abstracted term and the pattern. In the present example, 
+this feature enables us to
 complete the proof by \with-abstracting over \AgdaBound{f} \AgdaBound{x} once 
-more simultaneously with \AgdaBound{eq} to refute the false case:
+more, simultaneously with \AgdaBound{eq} to refute the false case:
 
 \begin{code}[hide]
 filter-twice : filter f (filter f xs) ≡ filter f xs
@@ -267,14 +271,13 @@ filter-twice {f = f} {xs = x ,- xs} with f x in eq
 ... | ff | () --- absurd
 \end{code}
 
-Even so, the workaround is tedious, and in the next section we will see
-that, sometimes, such workarounds are impossible.
+Even so, the workaround is tedious, and sometimes does not work at all.
 
 % TODO: Do we want to introduce local rewrite rules at this point?
 % Delaying the "real" examples is sad, but I think it might be a good idea
 % for readability...
 Inspired by the \scase proposal of Altenkirch et al. \cite{altenkirch2011case},
-we propose an improved \with-abstraction mechanism for Agda. In our
+we propose an improved \with-abstraction mechanism for Agda. On our
 work-in-progress branch \cite{nathaniel2026matches}, we can directly fill the 
 original hole with
 \AgdaFunction{ap}\AgdaSpace{}%
@@ -289,19 +292,19 @@ Our implementation builds upon (a subset\footnote{We
 only need \emph{ground} rules: all variables in 
 equations are bound in the context or via higher-order matching.} of)
 local rewrite rules as proposed by Leray and
-Winterhalter \cite{leray2025encode} and implemented in an open Agda PR 
+Winterhalter \cite{leray2025encode} and recently implemented in Agda 
 \cite{nathaniel2026local}.
-% TODO: Maybe we cut this...
 To elaborate \with-abstractions, Agda's existing generalisation procedure
-normalises the context (and goal type), applies a one-off rewrite
+first
+normalises the context (and goal), then applies a one-off rewrite
 (replacing occurrences of the matched term with a fresh argument)
-and then checks the context remains
+and finally checks the context is still
 well-typed. 
-We simply extends the context with a local
+\SWITH, on the other hand, simply extends the context with a local
 rewrite rule from the matched term to the fresh argument
-instead (and this
-local rewrite rule is refined in each of the clauses). By no longer
-normalising the context to perform generalisation, we are also hopeful that 
+(and this
+rewrite rule is refined in the clauses). By no longer
+having to normalise the entire context, we are also hopeful that 
 \swith can be
 made more performant than Agda's existing \with construct.
 
@@ -374,8 +377,7 @@ variable
 \end{code}
 
 \begin{code}[hide]
-_+_ : Nat p → Nat q → Nat (p xor q)
-ze + m = m
+-- _+_ : Nat p → Nat q → Nat (p xor q)
 \end{code}
 
 We will try to implement addition of \Nat{}s, \AgdaAddDef (which \xor{}s the 
@@ -386,15 +388,16 @@ The base case of \AgdaAddDef
 is easy, but the inductive step requires us to do some work. 
 \inv \AgdaBound{p} \xor \AgdaBound{q} is stuck, so we must
 prove a lemma about how \inv commutes with \xor
-(concretely, \inv \AgdaBound{p} \xor \AgdaBound{q} \AgdaEq \inv 
+(concretely, \invXor \AgdaColon \inv \AgdaBound{p} \xor \AgdaBound{q} 
+\AgdaEq \inv 
 \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}).
 
 This is reasonable enough, but we then face 
 a more technical challenge in how to actually 
 use this lemma. Aiming for convenience,
-we gravitate towards Agda's \rewrite construct, which takes a propositional
-equality and applies a one-off rewrite to the context. 
-We first \with-abstract over the recursive call in order to get some variable into the
+we gravitate towards Agda's \rewrite construct. 
+We first \with-abstract over the recursive call in order to get some variable
+into the
 context (\AgdaBound{n+m}) with type 
 \mbox{\Nat \AgdaParens{\inv \AgdaBound{p} \xor \AgdaBound{q}}}.
 Then, we \rewrite its type to the required 
@@ -403,62 +406,67 @@ and apply successor.
 
 \vspace{-1.5ex}
 \noindent
-\begin{minipage}{0.43\textwidth}
+\begin{minipage}{0.45\textwidth}
 \begin{code}
+_+_ : Nat p → Nat q → Nat (p xor q)
 _+_ {p} {q} (su n) m
   with     n+m ← n + m
   rewrite  inv-xor {p} {q}
   = su n+m
 \end{code}
 \begin{code}[hide]
+ze + m = m
+
 _≡[_]≡_ : A → A ≡ B → B → Set _
 x ≡[ refl ]≡ y = x ≡ y
 infix 4 _≡[_]≡_
 
-+ze : n + ze ≡[ ap Nat xor-even ]≡ n
-+ze {n = ze} = refl
+-- +ze : n + ze ≡[ ap Nat xor-even ]≡ n
 \end{code}
 \end{minipage}
 \begin{minipage}{0.4\textwidth}
 \begin{code}
++ze : n + ze ≡[ ap Nat xor-even ]≡ n
 +ze {n = su {p} n}
   with     n′ ← n + ze --- in eq
   rewrite  inv-xor {p} {even}
   = {!!}
+\end{code}
+\begin{code}[hide]
++ze {n = ze} = refl
 \end{code}
 \end{minipage}
 \vspace{-1.5ex}
 
 Note that inlining \AgdaBound{n+m} does not work.
 \rewrite{} desugars to simultaneous
-\with-abstractions and therefore inherits the same limitations: Agda does not 
+\with-abstraction over the left-hand-side and identity proof, and therefore 
+inherits the same limitations: Agda does not 
 ``remember''
 the equality between \inv \AgdaBound{p} \xor \AgdaBound{q} and
 \inv \AgdaParens{\AgdaBound{p} \xor \AgdaBound{q}}.
 
 Proving \AddZe is trickier. Technically, the theorem is not even type correct 
 without knowing 
-\mbox{\AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p}} but proving this is easy 
-enough. We state the type of \AddZe with a dependent identity: 
-\AgdaBound{n} \AgdaAdd \ze 
-\AgdaDepEq{\AgdaAp \Nat \xorEven} \AgdaBound{n}.
+\mbox{\xorEven \AgdaColon \AgdaBound{p} \xor \even \AgdaEq \AgdaBound{p}} but 
+proving this is easy 
+enough. We then state the type of \AddZe with a dependent identity type.
 In the inductive case, we first need to repeat the same
 \with-abstraction and \rewrite to make
 \su \AgdaBound{n} \AgdaAdd \ze reduce.
 The remaining goal (\AgdaHole{\{!!\}}) asks us to prove 
 \mbox{\su \AgdaBound{n′} \AgdaDepEq{\AgdaAp \Nat \xorEven} 
-\su \AgdaBound{n}}
+\su \AgdaBound{n}},
 % Manipulating dependent identity is its own can of worms, but
 % more pressingly, 
 but this is impossible: we have lost the connection 
 between \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze.
 If we try to apply the inspect idiom again and bind ``\AgdaIn \AgdaBound{eq}''
 in \AddZe, we hit the dreaded \emph{ill-typed \with-abstraction} error: 
-\AgdaError{inv p xor even != lhs of type Parity} 
-\AgdaError{when checking that the type} ...
+\AgdaError{inv p xor even != lhs of type Parity when checking that the type} ...
 \AgdaError{of the generated with function is well-formed}.
 
-The problem is \with-abstractions' one-off nature.
+Again, the problem is \with-abstractions' one-off nature.
 For 
 \AgdaBound{eq} : \AgdaBound{n′} \AgdaEq \AgdaBound{n} \AgdaAdd \ze 
 to typecheck, both \AgdaBound{n′} and \AgdaBound{n} \AgdaAdd \ze must have
@@ -509,15 +517,15 @@ groupoids/displayed presheaves.
 When trying to mechanise these constructions in a proof assistant,
 this dependency causes a ``transport-hell'' problem: the groupoid/functor laws
 only hold propositionally, and so we must insert transports in the 
-interpretation of types\footnote{Type theory's substitution calculus
-can also cause a ``transport-hell'' problem, but it is possible
-to avoid problems here with ``strictification'': either
-using global rewrite rules or
-Kaposi and Pujet's construction \cite{kaposi2025type}.}. When defining
+interpretation of types\footnote{``Transport-hell'' can also arise from 
+type theory's own substitution calculus, but \emph{strictification} via global
+rewrite rules or Kaposi and Pujet's construction \cite{kaposi2025type}
+can mostly resolve this.}. When defining
 the interpretation of terms, these transports need to manually shifted around,
 adding significant clutter to the proofs \cite{burke2026tt}.
 With \swith/\srewrite, we could instead reflect these equations in each case
-and let the transports reduce away, getting us much closer to the clarity of
+and allow the transports to reduce away, 
+getting us much closer to the clarity of
 informal presentations.
 % bridging the gap between mechanised
 % and less formal presentations.
@@ -525,7 +533,7 @@ informal presentations.
 \vspace{-2.0ex}
 \paragraph{Theory}
 
-We propose a target type theory for a language with \swith by way of
+We propose a target type theory for a language featuring \swith by way of
 introducing a new contextual judgement for convertibility 
 assumptions, following \cite{altenkirch2011case}. We denote a context |Γ|
 extended by an equation between terms |t₁|, |t₂| with |Γ ▷ t₁ ~ t₂|.
@@ -553,36 +561,43 @@ gives us the freedom to syntactically restrict
 equations (e.g. disallowing overlap), 
 without endangering stability under substitution.
 
-The theory for Booleans was explored in detail in \cite{burke2025local} by
-extending normalisation by evaluation with an extra step during 
-unquote/reflect: before embedding a β-neutral term into the values, we need
-to first syntactically compare it with the LHSs of the in-scope rewrites.
-This approach is somewhat unsatisfying though, because it (temporarily)
-breaks the conversion relation, requiring a definition of syntax that allows
-distinguishing convertible terms (i.e. type theory as a setoid rather than 
-a quotient inductive type), and for a fully formal proof, syntactic lemmas
-such as confluence of reduction must be proven. We are investigating
-an alternative approach based on stabilised neutrals 
-\cite{sterling2021normalization}.
-% TODO: We can say more here now, and probably should...
+The theory for Boolean equations was explored in earlier work
+\cite{burke2025local}.
+Since then, we have worked to clarify and extend the normalisation argument.
+The algorithm is comprised of two components: first, 
+we generate term rewriting systems (TRSs) from the
+convertibility assumptions in the 
+telescope of every top-level definition. This step is inherently
+very
+syntactic (\swith validity is not stable under conversion).
+Once we have the TRS, we can extend normalisation by
+evaluation (NbE) by rewriting β-neutral terms during unquote/reflect
+(conditional on neutral/normal form comparisons). 
+Staying \emph{algebraic} (working with type theory as a
+quotient inductive-inductive type) in the NbE component 
+appears feasible, but requires care to avoid circularity. E.g. 
+we cannot depend on injectivity of type formers during normalisation. 
 
-
+We are also investigating whether stabilised
+neutrals \cite{sterling2021normalization} can help to further abstract
+the proof (moving from presheaves on thinnings to presheaves on arbitrary 
+renamings).
 Additionally, equations at more complicated types than Booleans
 pose some further difficulties. For example, the natural number equation
 |n ~ su (f n)| must be oriented towards |su (f n)| to unblock 
-β-reductions, but also loops if we apply it naively.
+β-reductions, but loops if we apply it naively.
 
 Finally, we touch on conservativity/consistency. 
-\SWITH/local equality reflection is a
-judgemental equality reflection so consistency w.r.t. extensional type 
-theory is immediate, but we would like to say as conservative as possible
-over the base type theory.
+Local equality reflection is implied by
+judgemental equality reflection so a translation into ETT is immediate, but we 
+would ideally have a translation into ITT that does not rely on 
+function extensionality
+(we only allow reflecting individual equations, not families of equations) or 
+UIP (for consistency with HoTT).
 
-Translating local equality reflection to a type theory without function 
-extensionality appears quite feasible (note that local equality reflection
-does not reflect families of equations) but naive \swith certainly does
+Unfortunately, naive \swith certainly does
 imply UIP. The situation somewhat resembles that of dependent pattern matching
-\cite{coquand1992pattern, goguen2006eliminating, barras2008new}
+\cite{coquand1992pattern, goguen2006eliminating, barras2008new},
 where it is possible to avoid UIP by restricting 
 the unification algorithm \cite{cockx2016eliminating}, so we are hopeful
 a similar criterion on reflected equations could be employed (e.g. disallowing
