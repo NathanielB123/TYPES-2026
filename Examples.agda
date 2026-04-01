@@ -30,23 +30,23 @@ open Utils
 -- Filter example
 
 filter : (A → Bool) → List A → List A
-filter {A = A} f []         = []
-filter {A = A} f (x ,- xs)  with f x
-filter {A = A} f (x ,- xs) | tt = x ,- filter f xs
-filter {A = A} f (x ,- xs) | ff = filter f xs
+filter f []           = []
+filter f (x ,- xs) with f x
+... | tt = x ,- filter f xs
+... | ff = filter f xs
 
 filter-twice : filter f (filter f xs) ≡ filter f xs
-filter-twice {xs = []} = refl
+filter-twice         {xs = []}         = refl
 filter-twice {f = f} {xs = x ,- xs} with f x in eq
 ... | ff = filter-twice {xs = xs}
 ... | tt with f x | eq
 ... | tt | eq = ap (x ,-_) (filter-twice {xs = xs})
 ... | ff | ()
 
--- With "smart with" we can instead implement 'filter-twice' as follows:
+-- With "smart with" we can instead implement |filter-twice| as follows:
 {-
 filter-twice : filter f (filter f xs) ≡ filter f xs
-filter-twice {xs = []} = refl
+filter-twice         {xs = []}         = refl
 filter-twice {f = f} {xs = x ,- xs} with f x
 ... | ff = filter-twice {xs = xs}
 ... | tt = ap (x ,-_) (filter-twice {xs = xs})
@@ -91,53 +91,53 @@ variable
 _+_ : Nat p → Nat q → Nat (p xor q)
 ze + m = m
 _+_ {p} {q} (su n) m
-  with     n+m ← n + m
-  rewrite  inv-xor {p} {q}
+  with    n+m ← n + m
+  rewrite inv-xor {p} {q}
   = su n+m
 
 +ze : n + ze ≡[ ap Nat xor-even ]≡ n
 +ze {n = ze}   = refl
-+ze {n = su {p = p} n} 
-  with     n′ ← n + ze -- in eq
-                       -- ^ Uncommenting this hits an "ill-typed 
-                       --   with-abstraction" error.
-  rewrite  inv-xor {p} {even}
++ze {n = su {p} n} 
+  with    n′ ← n + ze -- in eq
+                      -- ^ Uncommenting this hits an "ill-typed 
+                      --   with-abstraction" error.
+  rewrite inv-xor {p} {even}
   = {!!} -- We are stuck!
 
 -- With "smart with" we can instead implement |_+_| and |+ze| as follows
 {-
 _+_ : Nat p → Nat q → Nat (p xor q)
-ze + m = m
+ze + m                  = m
 _+_ {p} {q} (su n) m with inv p xor q | inv-xor {p} {q}
 ... | _ | refl = su (n + m)
 
 +ze : n + ze ≡[ ap Nat xor-even ]≡ n
-+ze {n = ze}           = refl
-+ze {n = su {p = p} n} with inv p xor even | inv-xor {p} {even}
-                          | p xor even | xor-even {p}
-                          | xor-even {inv p}
++ze {n = ze}          = refl
++ze {n = su {p} n} with inv p xor even | inv-xor {p} {even}
+                      | p xor even | xor-even {p}
+                      | xor-even {inv p}
 ... | _ | refl | _ | refl | refl = ap su (+ze {n = n})
 -}
 
 -- With "smart rewrite" sugar, we can simply write
 {-
 _+_ : Nat p → Nat q → Nat (p xor q)
-ze   + m = m
+ze + m = m
 _+_ {p} {q} (su n) m 
   rewrite inv-xor {p} {q}
   = su (n + m)
 
 +ze : n + ze ≡[ ap Nat xor-even ]≡ n
-+ze {n = ze}   = refl
-+ze {n = su {p = p} n} 
++ze {n = ze} = refl
++ze {n = su {p} n} 
   rewrite inv-xor {p} {even}
   rewrite xor-even {p}
   rewrite xor-even {inv p}
   = ap su (+ze {n = n})
 -}
 
--- Note the final |rewrite| would probably would be rejected by |--smart-with|, 
--- |--without-K|.
+-- Note the final |with|-abstraction/|rewrite| should probably be rejected by
+-- |--smart-with|, |--without-K|.
 -- We should instead reflect the below higher equation.
 xor-even-inv : xor-even {inv p} ≡ inv-xor {p} {even} ∙ ap inv (xor-even {p})
 xor-even-inv {p = odd}  = refl
