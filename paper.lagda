@@ -519,15 +519,13 @@ only hold propositionally, and so we must insert transports in the
 interpretation of types.\footnote{``Transport-hell'' can also arise from 
 type theory's own substitution calculus, but \emph{strictification} via global
 rewrite rules or Kaposi and Pujet's construction \cite{kaposi2025type}
-can mostly resolve this.} When defining
+can mostly resolve problems of this kind.} When defining
 the interpretation of terms, these transports need to manually shifted around,
 adding significant clutter to the proofs \cite{burke2026tt}.
-With \swith/\srewrite, we could instead reflect these equations in each case
+With \swith/\srewrite, we can instead reflect these equations in each case
 and have the transports reduce away, 
 getting us much closer to the clarity of
 informal presentations.
-% bridging the gap between mechanised
-% and less formal presentations.
 
 \vspace{-2.0ex}
 \paragraph{Theory}
@@ -558,7 +556,7 @@ top-level.
 This is in keeping with Agda's generative pattern matching and
 gives us the freedom to syntactically restrict 
 equations (e.g. disallowing overlap), 
-without endangering subject reduction.
+without endangering stability under substitution.
 
 The theory for Boolean equations was explored in earlier work
 \cite{burke2025local}.
@@ -577,14 +575,14 @@ quotient inductive-inductive type) in the NbE component
 appears feasible, but requires care to avoid circularity; 
 we cannot depend on injectivity of type formers during normalisation. 
 
-We are also investigating whether stabilised
-neutrals \cite{sterling2021normalization} can help to further abstract
-the proof (moving from presheaves on thinnings to presheaves on arbitrary 
-renamings).
 Additionally, equations at more complicated types than Booleans
 pose some further difficulties. For example, the natural number equation
 |n ~ su (f n)| must be oriented towards |su (f n)| to unblock 
 β-reductions, but loops if we apply it naively.
+We are also investigating whether stabilised
+neutrals \cite{sterling2021normalization} can help to further abstract
+the proof (moving from presheaves on thinnings to presheaves on 
+renamings).
 
 Finally, we touch on conservativity/consistency. 
 Local equality reflection is implied by
