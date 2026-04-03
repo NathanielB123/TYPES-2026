@@ -225,7 +225,7 @@ the goal to reduce to \nil.
 The inductive case is harder. Because \filter is defined by \with-abstraction,
 \filterTwice must repeat the match on \AgdaBound{f} \AgdaBound{x} to make
 progress. In the false case, the goal reduces to exactly the induction 
-hypothesis; but in the true case (left as a hole, \AgdaHole{\{!!\}}),
+hypothesis, but in the true case (left as a hole, \AgdaHole{\{!!\}}),
 Agda displays the goal type as
 \mbox{\filter \AgdaBound{f} \AgdaParens{\AgdaBound{x} \cons 
 \filter \AgdaBound{f} \AgdaBound{xs}} 
@@ -561,21 +561,21 @@ without endangering stability under substitution.
 The theory for Boolean equations was explored in earlier work
 \cite{burke2025local}.
 Since then, we have worked to clarify and extend the normalisation argument.
-The algorithm is comprised of two components: first, 
-we generate term rewriting systems (TRSs) from the
-convertibility assumptions in the 
-telescope of every top-level definition. This step is inherently
-very
+The algorithm is comprised of two components:
+building term rewriting systems (TRSs) and normalisation by evaluation (NbE). 
+We build TRSs from the convertibility assumptions
+in the telescope of every top-level definition. 
+This step is inherently very
 syntactic (\swith validity is not stable under conversion).
-Given a TRS, we can extend normalisation by
-evaluation (NbE) by rewriting β-neutral terms during unquote/reflect
+NbE modulo a particular TRS rewrites β-neutral terms to values
+during unquote/reflect
 (conditional on neutral/normal form comparisons). 
 Staying \emph{algebraic} (working with type theory as a
-quotient inductive-inductive type) in the NbE component 
+quotient inductive-inductive type) during the NbE component
 appears feasible, but requires care to avoid circularity; 
 we cannot depend on injectivity of type formers during normalisation. 
 
-Additionally, equations at more complicated types than Booleans
+Equations at more complicated types than Booleans
 pose some further difficulties. For example, the natural number equation
 |n ~ su (f n)| must be oriented towards |su (f n)| to unblock 
 β-reductions, but loops if we apply it naively.
@@ -586,7 +586,7 @@ renamings).
 
 Finally, we touch on conservativity/consistency. 
 Local equality reflection is implied by
-judgemental equality reflection so a translation into ETT is immediate, but we 
+judgemental equality reflection, so a translation into ETT is immediate, but we 
 would ideally have a translation into ITT that does not rely on 
 function extensionality
 (we only allow reflecting individual equations, not families of equations) or 
