@@ -74,7 +74,7 @@
 \AgdaOperator{\AgdaFunction{]≡}}%
 \xspace}
 \newcommand{\AgdaAdd}{\AgdaOperator{\AgdaFunction{+}}\xspace}
-\newcommand{\AgdaAddDef}{\AgdaOperator{\AgdaFunction{\AgdaUnderscore{}+\AgdaUnderscore{}}}}
+\newcommand{\AgdaAddDef}{\AgdaOperator{\AgdaFunction{\AgdaUnderscore{}+\AgdaUnderscore{}}}\xspace}
 \newcommand{\AgdaAp}{\AgdaFunction{ap}\xspace}
 \newcommand{\xorEven}{\AgdaFunction{xor-even}\xspace}
 \newcommand{\invXor}{\AgdaFunction{inv-xor}\xspace}
