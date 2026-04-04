@@ -561,13 +561,13 @@ without endangering stability under substitution.
 The theory for Boolean equations was explored in earlier work
 \cite{burke2025local}.
 Since then, we have worked to clarify and extend the normalisation argument.
-The algorithm is comprised of two components:
-building term rewriting systems (TRSs) and normalisation by evaluation (NbE). 
-We build TRSs from the convertibility assumptions
+There are two main components:
+building rewrite environments and normalisation by evaluation (NbE). 
+We build rewrite environments from the convertibility assumptions
 in the telescope of every top-level definition. 
-This step is inherently very
-syntactic (\swith validity is not stable under conversion).
-NbE modulo a particular TRS rewrites β-neutral terms to values
+This step is inherently
+syntactic (\swith checking is not stable under conversion).
+NbE modulo a particular rewrite environment rewrites β-neutral terms to values
 during unquote/reflect
 (conditional on neutral/normal form comparisons). 
 Staying \emph{algebraic} (working with type theory as a
