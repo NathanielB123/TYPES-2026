@@ -523,8 +523,8 @@ but \emph{strictification} via global
 rewrite rules \cite{cockx2021taming}
 or Kaposi and Pujet's construction \cite{kaposi2025type}
 can mostly resolve problems of this kind.}. When defining
-the interpretation of terms, these transports need to manually shifted around,
-adding significant clutter to the proofs \cite{burke2026tt}.
+the interpretation of terms, these transports need to be manually shifted 
+around, adding significant clutter to the proofs \cite{burke2026tt}.
 With \swith/\srewrite, we can instead reflect these equations in each case
 and have the transports reduce away, 
 getting us much closer to the clarity of
