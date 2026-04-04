@@ -517,9 +517,11 @@ groupoids/displayed presheaves.
 When trying to mechanise these constructions in a proof assistant,
 this dependency causes a ``transport-hell'' problem: the groupoid/functor laws
 only hold propositionally, and so we must insert transports in the 
-interpretation of types\footnote{``Transport-hell'' can also arise from 
-type theory's own substitution calculus, but \emph{strictification} via global
-rewrite rules or Kaposi and Pujet's construction \cite{kaposi2025type}
+interpretation of types\footnote{Type theory's own substitution calculus
+can also be a source of ``transport-hell'', 
+but \emph{strictification} via global
+rewrite rules \cite{cockx2021taming}
+or Kaposi and Pujet's construction \cite{kaposi2025type}
 can mostly resolve problems of this kind.}. When defining
 the interpretation of terms, these transports need to manually shifted around,
 adding significant clutter to the proofs \cite{burke2026tt}.
