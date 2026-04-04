@@ -565,13 +565,13 @@ There are two main components:
 building rewrite environments and normalisation by evaluation (NbE). 
 We build rewrite environments from the convertibility assumptions
 in the telescope of every top-level definition. 
-This step is inherently
+This step is inherently very
 syntactic (\swith checking is not stable under conversion).
 NbE modulo a particular rewrite environment rewrites β-neutral terms to values
 during unquote/reflect
 (conditional on neutral/normal form comparisons). 
 Staying \emph{algebraic} (working with type theory as a
-quotient inductive-inductive type) during the NbE component
+quotient inductive-inductive type) during NbE
 appears feasible, but requires care to avoid circularity; 
 we cannot depend on injectivity of type formers during normalisation. 
 
