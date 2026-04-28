@@ -113,8 +113,9 @@ _+_ {p} {q} (su n) m with inv p xor q | inv-xor {p} {q}
 
 +ze : n + ze ≡[ ap Nat xor-even ]≡ n
 +ze {n = ze}          = refl
-+ze {n = su {p} n} with inv p xor even | inv-xor {p} {even}
++ze {n = su {p} n} with 
                       | p xor even | xor-even {p}
+                      | inv p xor even | inv-xor {p} {even}
                       | xor-even {inv p}
 ... | _ | refl | _ | refl | refl = ap su (+ze {n = n})
 -}
@@ -130,15 +131,15 @@ _+_ {p} {q} (su n) m
 +ze : n + ze ≡[ ap Nat xor-even ]≡ n
 +ze {n = ze} = refl
 +ze {n = su {p} n} 
-  rewrite inv-xor {p} {even}
   rewrite xor-even {p}
-  rewrite xor-even {inv p}
+  rewrite inv-xor {p} {even}
+  with refl ← xor-even {inv p}
   = ap su (+ze {n = n})
 -}
 
--- Note the final |with|-abstraction/|rewrite| should probably be rejected by
+-- Note the final |with|-abstraction should probably be rejected by
 -- |--smart-with|, |--without-K|.
--- We should instead reflect the below higher equation.
+-- We should instead "smart rewrite" over the below higher equation.
 xor-even-inv : xor-even {inv p} ≡ inv-xor {p} {even} ∙ ap inv (xor-even {p})
 xor-even-inv {p = odd}  = refl
 xor-even-inv {p = even} = refl
