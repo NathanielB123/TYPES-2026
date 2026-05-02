@@ -1,5 +1,7 @@
+# With-abstractions causing pain "in the wild"
+
 This folder contains a number of code snippets collected from the Agda Zulip
-where users were confused about with abstraction, and `--smart-with` actually
+where users were confused about with-abstraction, and `--smart-with` actually
 does what they intended.
 
 To be fair, many of the motivating problems have much neater solutions that do 
