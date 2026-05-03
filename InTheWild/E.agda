@@ -14,15 +14,10 @@ open ≡-Reasoning
 -- 'u' with 'f x' in the steps, but it does *work*
 module InTheWild.E where
 
-g : ℕ → ℕ → ℕ
-g x y = {!   !}
-
-opaque
+postulate
+  g : ℕ → ℕ → ℕ
   f : ℕ → ℕ
-  f x = {!!}
-
-lem : ∀ x y → f x ≡ g x y
-lem = {!   !}
+  lem : ∀ x y → f x ≡ g x y
 
 identity : ∀ x y → f x + 0 ≡ g x y
 identity x y with u ← f x = begin
