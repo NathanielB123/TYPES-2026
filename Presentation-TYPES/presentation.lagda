@@ -495,8 +495,8 @@ decide f x | ff = inr refl
     \includegraphics{Emojis/AAA}
   \end{itemize}
 \item<6> This is a real problem! Users keep hitting problems with 
-  \with-abstractions\footcite{burke2026wild} and are warned away from 
-  the feature.
+  \with-abstractions\footnote{\url{https://github.com/NathanielB123/TYPES-2026/tree/main/InTheWild}} 
+  and are warned away from the feature.
 \end{itemize}
 \end{frame}
 
@@ -1383,7 +1383,7 @@ module ParityProofExampleD where
 \item<4> Rewriting requires mutually comparing normal forms during evaluation.
   This necessitates care in the definition of normal forms (e.g. extra type 
   annotations to avoid circularly relying on type former 
-  injectivity).\footcite{burke2026tt}
+  injectivity).\footnote{\url{https://github.com/NathanielB123/TT/tree/main/NonLinNbE/}}
 \end{itemize}
 \end{frame}
 
