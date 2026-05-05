@@ -1208,7 +1208,7 @@ module ParityProofExampleD where
 \>[2]\AgdaKeyword{rewrite}\AgdaSpace{}%
 \AgdaFunction{inv-xor}\AgdaSpace{}%
 \AgdaSymbol{\{}\AgdaBound{p}\AgdaSymbol{\}}\AgdaSpace{}%
-\AgdaSymbol{\{}\AgdaBound{q}\AgdaSymbol{\}}\<%
+\AgdaSymbol{\{}\AgdaInductiveConstructor{even}\AgdaSymbol{\}}\<%
 \\
 % \>[2]\AgdaKeyword{rewrite}\AgdaSpace{}%
 % \AgdaFunction{xor-even-inv}\AgdaSpace{}%
@@ -1471,7 +1471,7 @@ module ParityProofExampleD where
 \>[2]\AgdaKeyword{rewrite}\AgdaSpace{}%
 \AgdaFunction{inv-xor}\AgdaSpace{}%
 \AgdaSymbol{\{}\AgdaBound{p}\AgdaSymbol{\}}\AgdaSpace{}%
-\AgdaSymbol{\{}\AgdaBound{q}\AgdaSymbol{\}}\<%
+\AgdaSymbol{\{}\AgdaInductiveConstructor{even}\AgdaSymbol{\}}\<%
 \\
 \>[2]\AgdaKeyword{rewrite}\AgdaSpace{}%
 \AgdaFunction{xor-even-inv}\AgdaSpace{}%
